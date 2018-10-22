@@ -1,3 +1,4 @@
+import graphene
 from graphene import relay
 from django.contrib.auth.models import User
 from graphene_django import DjangoObjectType
@@ -95,3 +96,27 @@ class Query(object):
 
     report = relay.Node.Field(ReportNode)
     all_reports = DjangoFilterConnectionField(ReportNode)
+
+
+# Mutations
+class CreateUser(graphene.relay.ClientIDMutation):
+    user = graphene.Field(UserNode)
+
+    class Input:
+        username = graphene.String(required=True)
+        password = graphene.String(required=True)
+        email = graphene.String(required=True)
+
+    def mutate_and_get_payload(self, info, **input):
+        user = User(
+            username = input.get('username'),
+            email = input.get('email'),
+        )
+        user.set_password(input.get('password'))
+        user.save()
+
+        return CreateUser(user=user)
+
+
+class Mutation(graphene.AbstractType):
+    create_user = CreateUser.Field()
