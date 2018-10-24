@@ -2,6 +2,7 @@ image: docker:latest
 
 stages:
 - build
+- deploy
 
 services:
   - docker:dind
@@ -11,6 +12,12 @@ variables:
 
 before_script:
   - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.taher.io
+  - 'which ssh-agent || ( apk update && apk add openssh-client )'
+  - eval $(ssh-agent -s)
+  - echo "$DEPLOY_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+
 
 build:
   stage: build
@@ -22,3 +29,10 @@ build:
     - docker build --cache-from $CONTAINER_IMAGE:latest --tag $CONTAINER_IMAGE:$CI_COMMIT_SHA --tag $CONTAINER_IMAGE:latest .
     - docker push $CONTAINER_IMAGE:$CI_COMMIT_SHA
     - docker push $CONTAINER_IMAGE:latest
+
+deploy:
+  stage: deploy
+  only:
+    - master
+  script:
+    - ssh -o StrictHostKeyChecking=no h2h-deployer@taher.io "bash -s" < start_prod.sh
