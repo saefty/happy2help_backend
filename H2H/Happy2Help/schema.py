@@ -1,3 +1,5 @@
+import graphene
+import graphql_jwt 
 from graphene import relay
 from django.contrib.auth.models import User
 from graphene_django import DjangoObjectType
@@ -68,7 +70,15 @@ class ReportNode(DjangoObjectType):
         interfaces = (relay.Node, )
 
 
-class Query(object):
+
+
+    
+        
+
+
+
+
+class Query(graphene.ObjectType):
     user = relay.Node.Field(UserNode)
     all_users = DjangoFilterConnectionField(UserNode)
 
@@ -95,3 +105,31 @@ class Query(object):
 
     report = relay.Node.Field(ReportNode)
     all_reports = DjangoFilterConnectionField(ReportNode)
+
+
+
+
+# Mutations
+class CreateUser(graphene.relay.ClientIDMutation):
+    user = graphene.Field(UserNode)
+
+    class Input:
+        username = graphene.String(required=True)
+        password = graphene.String(required=True)
+        email = graphene.String(required=True)
+
+    def mutate_and_get_payload(self, info, **input):
+        user = User(
+            username = input.get('username'),
+            email = input.get('email'),
+        )
+        user.set_password(input.get('password'))
+        user.save()
+
+        return CreateUser(user=user)
+
+class Mutation(graphene.AbstractType):
+    create_user = CreateUser.Field()
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
