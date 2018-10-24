@@ -107,8 +107,6 @@ class Query(graphene.ObjectType):
     all_reports = DjangoFilterConnectionField(ReportNode)
 
 
-
-
 # Mutations
 class CreateUser(graphene.relay.ClientIDMutation):
     user = graphene.Field(UserNode)
