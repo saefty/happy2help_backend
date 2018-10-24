@@ -1,0 +1,24 @@
+image: docker:latest
+
+stages:
+- build
+
+services:
+  - docker:dind
+
+variables:
+  CONTAINER_IMAGE: registry.taher.io/h2h/django-backend/$CI_COMMIT_REF_SLUG
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.taher.io
+
+build:
+  stage: build
+  only: 
+    - develop
+    - master
+  script:
+    - docker pull $CONTAINER_IMAGE:latest || true
+    - docker build --cache-from $CONTAINER_IMAGE:latest --tag $CONTAINER_IMAGE:$CI_COMMIT_SHA --tag $CONTAINER_IMAGE:latest .
+    - docker push $CONTAINER_IMAGE:$CI_COMMIT_SHA
+    - docker push $CONTAINER_IMAGE:latest
