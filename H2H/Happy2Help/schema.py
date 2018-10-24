@@ -1,5 +1,5 @@
 import graphene
-import graphql_jwt 
+import graphql_jwt
 from graphene import relay
 from django.contrib.auth.models import User
 from graphene_django import DjangoObjectType
@@ -48,6 +48,11 @@ class ParticipationNode(DjangoObjectType):
         filter_fields = ['event', 'user', 'rating']
         interfaces = (relay.Node, )
 
+    def resolve_user(self, info):
+        if info.context.user.id != self.event.creator.id:
+           raise Exception("not authorized")
+        return self.user
+
 
 class RatingNode(DjangoObjectType):
     class Meta:
@@ -66,20 +71,21 @@ class FavouriteNode(DjangoObjectType):
 class ReportNode(DjangoObjectType):
     class Meta:
         model = Report
-        filter_fields = ['reason', 'user_a', 'orga_a', 'user_b', 'orga_b', 'text']
+        filter_fields = ['reason', 'user_a',
+                         'orga_a', 'user_b', 'orga_b', 'text']
         interfaces = (relay.Node, )
 
 
-
-
-    
-        
-
-
-
-
 class Query(graphene.ObjectType):
-    user = relay.Node.Field(UserNode)
+    user = DjangoFilterConnectionField(UserNode)  # relay.Node.Field(UserNode)
+
+    def resolve_user(self, info):
+        me = info.context.user
+        print(me)
+        if me.is_anonymous:
+            raise Exception('Not logged!')
+        return User.objects.filter(pk=me.id)
+
     all_users = DjangoFilterConnectionField(UserNode)
 
     profile = relay.Node.Field(ProfileNode)
@@ -118,13 +124,14 @@ class CreateUser(graphene.relay.ClientIDMutation):
 
     def mutate_and_get_payload(self, info, **input):
         user = User(
-            username = input.get('username'),
-            email = input.get('email'),
+            username=input.get('username'),
+            email=input.get('email'),
         )
         user.set_password(input.get('password'))
         user.save()
 
         return CreateUser(user=user)
+
 
 class Mutation(graphene.AbstractType):
     create_user = CreateUser.Field()
