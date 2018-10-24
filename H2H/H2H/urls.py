@@ -24,5 +24,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 
-if os.getenv('PRODUCTION', False) == True:
-    urlpatterns.append(path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True))))
+urlpatterns.append(path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=os.getenv('PRODUCTION', '0') == '0'))))
