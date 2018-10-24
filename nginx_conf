@@ -1,6 +1,6 @@
 server {
-   listen 80;
-    server_name *.taher.io;
+    listen 80 default_server;
+    server_name *.taher.io localhost 0.0.0.0;
     client_max_body_size 4G;
 
     location = /favicon.ico { access_log off; log_not_found off; }
