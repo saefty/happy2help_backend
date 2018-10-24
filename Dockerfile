@@ -18,5 +18,4 @@ EXPOSE 80
 ENV PRODUCTION true
 ENV PYTHONUNBUFFERED 1
 
-RUN chmod +x ./start.sh
 CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
