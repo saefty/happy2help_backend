@@ -9,6 +9,28 @@ class UserType(DjangoObjectType):
     class Meta:
         model = User
 
+    def resolve_organisation_set(self, info):
+        field_restrictor(self, info, self.organisation_set)
+
+    def resolve_profile(self, info):
+        field_restrictor(self, info, self.profile)
+
+    def resolve_event_set(self, info):
+        field_restrictor(self, info, self.event_set)
+
+    def resolve_participation_set(self, info):
+        field_restrictor(self, info, self.participation_set)
+
+    def resolve_favourite_set(self, info):
+        field_restrictor(self, info, self.favourite_set)
+    
+
+def field_restrictor(self, info, field):
+    """ allows only the user himself access on the given field"""
+    if info.context.user.id != self.id:
+        raise Exception("You tried to request a restricted Field")
+    return field
+
 
 class ProfileType(DjangoObjectType):
     class Meta:
@@ -36,7 +58,8 @@ class ParticipationType(DjangoObjectType):
 
     def resolve_user(self, info):
         if info.context.user.id != self.event.creator.id:
-           raise Exception("not authorized")
+            raise Exception(
+                "You have to be the creator of the event to get the participators")
         return self.user
 
 
@@ -48,6 +71,11 @@ class RatingType(DjangoObjectType):
 class FavouriteType(DjangoObjectType):
     class Meta:
         model = Favourite
+
+    def resolve_user(self, info):
+        if info.context.user.id != self.user.id:
+            raise Exception("not authorized")
+        return self.user
 
 
 class ReportType(DjangoObjectType):
@@ -69,7 +97,6 @@ class Query(graphene.ObjectType):
 
     def resolve_user(self, info):
         me = info.context.user
-        print(me)
         if me.is_anonymous:
             raise Exception('Not logged!')
         return me
