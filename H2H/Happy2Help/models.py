@@ -61,7 +61,7 @@ class Participation(models.Model):
     rating = models.ForeignKey(Rating, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
-        return str(self.user) + ' addends ' + str(self.event)
+        return str(self.user) + ' attends ' + str(self.event)
 
 
 class Favourite(models.Model):

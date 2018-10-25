@@ -1,9 +1,7 @@
 import graphene
 import graphql_jwt
-from graphene import relay
 from django.contrib.auth.models import User
 from graphene_django import DjangoObjectType
-from graphene_django.filter import DjangoFilterConnectionField
 from .models import Favourite, Rating, Participation, Event, Organisation, Report, Job, Profile
 
 
@@ -58,7 +56,16 @@ class ReportType(DjangoObjectType):
 
 
 class Query(graphene.ObjectType):
-    user = graphene.Field(UserType)  # relay.Node.Field(UserNode)
+    user = graphene.Field(UserType)
+    all_users = graphene.List(UserType)
+    profiles = graphene.List(ProfileType)
+    events = graphene.List(EventType)
+    organisations = graphene.List(OrganisationType)
+    jobs = graphene.List(JobType)
+    participations = graphene.List(ParticipationType)
+    ratings = graphene.List(RatingType)
+    favourites = graphene.List(FavouriteType)
+    reports = graphene.List(ReportType)
 
     def resolve_user(self, info):
         me = info.context.user
@@ -67,31 +74,32 @@ class Query(graphene.ObjectType):
             raise Exception('Not logged!')
         return me
 
-    all_users = graphene.List(UserType)
+    def resolve_all_users(self, info):
+        return User.objects.all()
 
-    profile = graphene.Field(ProfileType)
-    all_profiles = graphene.List(ProfileType)
+    def resolve_profiles(self, info):
+        return Profile.objects.all()
 
-    event = graphene.Field(EventType)
-    all_events = graphene.List(EventType)
+    def resolve_events(self, info):
+        return Event.objects.all()
 
-    organisation = graphene.Field(OrganisationType)
-    all_organisations = graphene.List(OrganisationType)
+    def resolve_organisations(self, info):
+        return Organisation.objects.all()
 
-    job = graphene.Field(JobType)
-    all_jobs = graphene.List(JobType)
+    def resolve_jobs(self, info):
+        return Job.objects.all()
 
-    participation = graphene.Field(ParticipationType)
-    all_participations = graphene.List(ParticipationType)
+    def resolve_participations(self, info):
+        return Participation.objects.all()
 
-    rating = graphene.Field(RatingType)
-    all_ratings = graphene.List(RatingType)
+    def resolve_ratings(self, info, id):
+        return Rating.objects.all()
 
-    favourite = graphene.Field(FavouriteType)
-    all_favourites = graphene.List(FavouriteType)
+    def resolve_favourites(self, info, id):
+        return Favourite.objects.all()
 
-    report = graphene.Field(ReportType)
-    all_reports = graphene.List(ReportType)
+    def resolve_reports(self, info, id):
+        return Report.objects.all()
 
 
 # Mutations
