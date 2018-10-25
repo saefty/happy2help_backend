@@ -1,52 +1,38 @@
 import graphene
 import graphql_jwt
-from graphene import relay
 from django.contrib.auth.models import User
 from graphene_django import DjangoObjectType
-from graphene_django.filter import DjangoFilterConnectionField
 from .models import Favourite, Rating, Participation, Event, Organisation, Report, Job, Profile
 
 
-class UserNode(DjangoObjectType):
+class UserType(DjangoObjectType):
     class Meta:
         model = User
-        filter_fields = ['username', 'email']
-        interfaces = (relay.Node, )
 
 
-class ProfileNode(DjangoObjectType):
+class ProfileType(DjangoObjectType):
     class Meta:
         model = Profile
-        filter_fields = ['user__username', 'user__email', 'birthday']
-        interfaces = (relay.Node, )
 
 
-class EventNode(DjangoObjectType):
+class EventType(DjangoObjectType):
     class Meta:
         model = Event
-        filter_fields = ['name', 'description', 'organisation', 'creator']
-        interfaces = (relay.Node, )
 
 
-class OrganisationNode(DjangoObjectType):
+class OrganisationType(DjangoObjectType):
     class Meta:
         model = Organisation
-        filter_fields = ['name', 'description', 'member']
-        interfaces = (relay.Node, )
 
 
-class JobNode(DjangoObjectType):
+class JobType(DjangoObjectType):
     class Meta:
         model = Job
-        filter_fields = ['name', 'description']
-        interfaces = (relay.Node, )
 
 
-class ParticipationNode(DjangoObjectType):
+class ParticipationType(DjangoObjectType):
     class Meta:
         model = Participation
-        filter_fields = ['event', 'user', 'rating']
-        interfaces = (relay.Node, )
 
     def resolve_user(self, info):
         if info.context.user.id != self.event.creator.id:
@@ -54,80 +40,83 @@ class ParticipationNode(DjangoObjectType):
         return self.user
 
 
-class RatingNode(DjangoObjectType):
+class RatingType(DjangoObjectType):
     class Meta:
         model = Rating
-        filter_fields = ['user_a', 'orga_a', 'user_b', 'orga_b', 'rating']
-        interfaces = (relay.Node, )
 
 
-class FavouriteNode(DjangoObjectType):
+class FavouriteType(DjangoObjectType):
     class Meta:
         model = Favourite
-        filter_fields = ['event', 'user']
-        interfaces = (relay.Node, )
 
 
-class ReportNode(DjangoObjectType):
+class ReportType(DjangoObjectType):
     class Meta:
         model = Report
-        filter_fields = ['reason', 'user_a',
-                         'orga_a', 'user_b', 'orga_b', 'text']
-        interfaces = (relay.Node, )
 
 
 class Query(graphene.ObjectType):
-    user = DjangoFilterConnectionField(UserNode)  # relay.Node.Field(UserNode)
+    user = graphene.Field(UserType)
+    all_users = graphene.List(UserType)
+    profiles = graphene.List(ProfileType)
+    events = graphene.List(EventType)
+    organisations = graphene.List(OrganisationType)
+    jobs = graphene.List(JobType)
+    participations = graphene.List(ParticipationType)
+    ratings = graphene.List(RatingType)
+    favourites = graphene.List(FavouriteType)
+    reports = graphene.List(ReportType)
 
     def resolve_user(self, info):
         me = info.context.user
         print(me)
         if me.is_anonymous:
             raise Exception('Not logged!')
-        return User.objects.filter(pk=me.id)
+        return me
 
-    all_users = DjangoFilterConnectionField(UserNode)
+    def resolve_all_users(self, info):
+        return User.objects.all()
 
-    profile = relay.Node.Field(ProfileNode)
-    all_profiles = DjangoFilterConnectionField(ProfileNode)
+    def resolve_profiles(self, info):
+        return Profile.objects.all()
 
-    event = relay.Node.Field(EventNode)
-    all_events = DjangoFilterConnectionField(EventNode)
+    def resolve_events(self, info):
+        return Event.objects.all()
 
-    organisation = relay.Node.Field(OrganisationNode)
-    all_organisations = DjangoFilterConnectionField(OrganisationNode)
+    def resolve_organisations(self, info):
+        return Organisation.objects.all()
 
-    job = relay.Node.Field(JobNode)
-    all_jobs = DjangoFilterConnectionField(JobNode)
+    def resolve_jobs(self, info):
+        return Job.objects.all()
 
-    participation = relay.Node.Field(ParticipationNode)
-    all_participations = DjangoFilterConnectionField(ParticipationNode)
+    def resolve_participations(self, info):
+        return Participation.objects.all()
 
-    rating = relay.Node.Field(RatingNode)
-    all_ratings = DjangoFilterConnectionField(RatingNode)
+    def resolve_ratings(self, info, id):
+        return Rating.objects.all()
 
-    favourite = relay.Node.Field(FavouriteNode)
-    all_favourites = DjangoFilterConnectionField(FavouriteNode)
+    def resolve_favourites(self, info, id):
+        return Favourite.objects.all()
 
-    report = relay.Node.Field(ReportNode)
-    all_reports = DjangoFilterConnectionField(ReportNode)
+    def resolve_reports(self, info, id):
+        return Report.objects.all()
 
 
 # Mutations
-class CreateUser(graphene.relay.ClientIDMutation):
-    user = graphene.Field(UserNode)
+class CreateUser(graphene.Mutation):
+    user = graphene.Field(UserType)
 
-    class Input:
+    class Arguments:
         username = graphene.String(required=True)
         password = graphene.String(required=True)
         email = graphene.String(required=True)
 
-    def mutate_and_get_payload(self, info, **input):
+    def mutate(self, info, username, password, email):
         user = User(
-            username=input.get('username'),
-            email=input.get('email'),
+            username=username,
+            email=email,
         )
-        user.set_password(input.get('password'))
+        user.set_password(password)
         user.save()
 
         return CreateUser(user=user)
