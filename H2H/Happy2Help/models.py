@@ -17,7 +17,8 @@ class Organisation(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    birthday = models.DateField(blank=True)
+    birthday = models.DateField(blank=True, null=True)
+    creditPoints = models.IntegerField(default=0)
 
     def __str__(self):
         return str(self.user)
@@ -61,7 +62,7 @@ class Participation(models.Model):
     rating = models.ForeignKey(Rating, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
-        return str(self.user) + ' addends ' + str(self.event)
+        return str(self.user) + ' attends ' + str(self.event)
 
 
 class Favourite(models.Model):
