@@ -38,6 +38,8 @@ class Job(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    openpositions = models.IntegerField()
+
 
     def __str__(self):
         return self.name
@@ -57,7 +59,8 @@ class Rating(models.Model):
 
 
 class Participation(models.Model):
-    event = models.ForeignKey(Event, on_delete=models.SET_NULL, blank=False, null=True) # partip nicht löschen wenn event gelöscht wird. etwas besseres als NULL wär gut...
+    #event = models.ForeignKey(Event, on_delete=models.SET_NULL, blank=False, null=True) # partip nicht löschen wenn event gelöscht wird. etwas besseres als NULL wär gut...
+    job = models.ForeignKey(Job, on_delete=models.SET_NULL, blank=False, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE) # wenn user gelöscht, dann ist particip auch weg
     rating = models.ForeignKey(Rating, on_delete=models.SET_NULL, blank=True, null=True)
 

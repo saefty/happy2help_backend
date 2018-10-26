@@ -77,7 +77,6 @@ class FavouriteType(DjangoObjectType):
             raise Exception("not authorized")
         return self.user
 
-
 class ReportType(DjangoObjectType):
     class Meta:
         model = Report
