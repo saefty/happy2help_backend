@@ -10,19 +10,19 @@ class UserType(DjangoObjectType):
         model = User
 
     def resolve_organisation_set(self, info):
-        field_restrictor(self, info, self.organisation_set)
+        return field_restrictor(self, info, self.organisation_set)
 
     def resolve_profile(self, info):
-        field_restrictor(self, info, self.profile)
+        return field_restrictor(self, info, self.profile)
 
     def resolve_event_set(self, info):
-        field_restrictor(self, info, self.event_set)
+        return field_restrictor(self, info, self.event_set)
 
     def resolve_participation_set(self, info):
-        field_restrictor(self, info, self.participation_set)
+        return field_restrictor(self, info, self.participation_set)
 
     def resolve_favourite_set(self, info):
-        field_restrictor(self, info, self.favourite_set)
+        return field_restrictor(self, info, self.favourite_set)
     
 
 def field_restrictor(self, info, field):
