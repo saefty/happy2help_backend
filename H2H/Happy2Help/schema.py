@@ -13,7 +13,7 @@ class UserType(DjangoObjectType):
         return field_restrictor(self, info, self.organisation_set)
 
     def resolve_profile(self, info):
-        return field_restrictor(self, info, self.profile)
+       return field_restrictor(self, info, self.profile)
 
     def resolve_event_set(self, info):
         return field_restrictor(self, info, self.event_set)
@@ -132,21 +132,32 @@ class Query(graphene.ObjectType):
 # Mutations
 class CreateUser(graphene.Mutation):
     user = graphene.Field(UserType)
+    profile = graphene.Field(ProfileType)
 
     class Arguments:
         username = graphene.String(required=True)
         password = graphene.String(required=True)
         email = graphene.String(required=True)
+        birthday = graphene.types.datetime.Date(required=False)
 
-    def mutate(self, info, username, password, email):
+
+    def mutate(self, info, username, password, email, **kwargs):
         user = User(
             username=username,
             email=email,
         )
+       
         user.set_password(password)
         user.save()
 
-        return CreateUser(user=user)
+        profile = Profile(
+            user= User.objects.filter(username=user.username).first(),
+            birthday = kwargs.get('birthday', None),
+        )
+
+        profile.save()
+
+        return CreateUser(user=user, profile=profile)
 
 
 class Mutation(graphene.AbstractType):
