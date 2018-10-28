@@ -8,6 +8,7 @@ from django.dispatch import receiver
 
 class Organisation(models.Model):
     name = models.CharField(max_length=200)
+    admin =  models.ForeignKey(User, related_name='adm', on_delete=models.CASCADE)
     description = models.TextField()
     member = models.ManyToManyField(User)
 

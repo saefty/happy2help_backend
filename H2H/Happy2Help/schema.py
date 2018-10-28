@@ -188,11 +188,30 @@ class DeleteUser(graphene.Mutation):
         return DeleteUser(user)
 
 
+class CreateOrganisation(graphene.Mutation):
+    organisation = graphene.Field(OrganisationType)
+
+    class Arguments:
+        name = graphene.String(required=True)
+        description = graphene.String(required=True)
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        organisation = Organisation(
+            admin = info.context.user,
+            name = kwargs.get('name'),
+            description = kwargs.get('description')
+        )
+        organisation.save()
+
+        return CreateOrganisation(organisation=organisation)
+
 
 class Mutation(graphene.AbstractType):
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
+    create_organisation = CreateOrganisation.Field()
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
