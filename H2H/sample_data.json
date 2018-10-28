@@ -114,7 +114,7 @@
     "name": "DRK",
     "admin": 1,
     "description": "Tut allen gut",
-    "member": [
+    "members": [
       2
     ]
   }
@@ -126,7 +126,7 @@
     "name": "DLRG",
     "admin": 1,
     "description": "Immer vor Ort!",
-    "member": [
+    "members": [
       2,
       3
     ]
@@ -139,7 +139,7 @@
     "name": "Evil Corp",
     "admin": 1,
     "description": "Geheim!",
-    "member": [
+    "members": [
       1
     ]
   }
@@ -151,7 +151,7 @@
     "name": "Aktion Deutschland Hilft",
     "admin": 1,
     "description": "B\u00fcndnis 23 deutscher Hilfsorganisationen - mit DZI Spendensiegel.",
-    "member": [
+    "members": [
       5,
       6
     ]
@@ -164,7 +164,7 @@
     "name": "arche NoVa e.V.",
     "admin": 1,
     "description": "arche noVa hat 2017 weltweit insgesamt 25 Projekte mit einem Volumen von 13,47 Mio. Euro in 15 Projektl\u00e4ndern durchgef\u00fchrt. Die Ausgaben f\u00fcr \u00d6ffentlichkeitsarbeit und Werbung sowie allgemeine Verwaltung lagen bei 3,33 Prozent",
-    "member": [
+    "members": [
       4
     ]
   }
@@ -176,7 +176,7 @@
     "name": "UNICEF Deutschland",
     "admin": 1,
     "description": "Das Kinderhilfswerk der Vereinten Nationen ist eines der entwicklungspolitischen Organe der Vereinten Nationen. Es wurde am 11. Dezember 1946 gegr\u00fcndet, zun\u00e4chst um Kindern in Europa nach dem Zweiten Weltkrieg zu helfen.",
-    "member": [
+    "members": [
       2
     ]
   }
