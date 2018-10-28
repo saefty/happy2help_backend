@@ -3,6 +3,7 @@ import graphql_jwt
 from django.contrib.auth.models import User
 from graphene_django import DjangoObjectType
 from .models import Favourite, Rating, Participation, Event, Organisation, Report, Job, Profile
+from graphql_jwt.decorators import login_required
 
 
 class UserType(DjangoObjectType):
@@ -13,7 +14,7 @@ class UserType(DjangoObjectType):
         return field_restrictor(self, info, self.organisation_set)
 
     def resolve_profile(self, info):
-       return field_restrictor(self, info, self.profile)
+        return field_restrictor(self, info, self.profile)
 
     def resolve_event_set(self, info):
         return field_restrictor(self, info, self.event_set)
@@ -23,11 +24,12 @@ class UserType(DjangoObjectType):
 
     def resolve_favourite_set(self, info):
         return field_restrictor(self, info, self.favourite_set)
-    
 
+
+@login_required
 def field_restrictor(self, info, field):
     """ allows only the user himself access on the given field"""
-    if info.context.user.id != self.id:
+    if info.context.user != self:
         raise Exception("You tried to request a restricted Field")
     return field
 
@@ -73,7 +75,7 @@ class FavouriteType(DjangoObjectType):
         model = Favourite
 
     def resolve_user(self, info):
-        if info.context.user.id != self.user.id:
+        if info.context.user != self.user:
             raise Exception("not authorized")
         return self.user
 
@@ -140,28 +142,57 @@ class CreateUser(graphene.Mutation):
         email = graphene.String(required=True)
         birthday = graphene.types.datetime.Date(required=False)
 
-
     def mutate(self, info, username, password, email, **kwargs):
         user = User(
             username=username,
             email=email,
         )
-       
         user.set_password(password)
         user.save()
-
+        
         profile = Profile(
-            user= User.objects.filter(username=user.username).first(),
-            birthday = kwargs.get('birthday', None),
+            user=User.objects.filter(username=user.username).first(),
+            birthday=kwargs.get('birthday', None),
         )
-
         profile.save()
 
         return CreateUser(user=user, profile=profile)
 
 
+
+class UpdateUser(graphene.Mutation):
+    user = graphene.Field(UserType)
+    class Arguments:
+        birthday = graphene.types.datetime.Date()
+        email = graphene.String()
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        user = info.context.user
+        if kwargs.get('birthday', None):
+            user.profile.birthday = kwargs.get('birthday', None)
+        if kwargs.get('email', None):
+            user.email = kwargs.get('email', None)
+        user.profile.save()
+        user.save()
+
+        return UpdateUser(user=user)
+
+class DeleteUser(graphene.Mutation):
+    user = graphene.Field(UserType)
+
+    @login_required
+    def mutate(self, info):
+        user = info.context.user
+        user.delete()
+        return DeleteUser(user)
+
+
+
 class Mutation(graphene.AbstractType):
     create_user = CreateUser.Field()
+    update_user = UpdateUser.Field()
+    delete_user = DeleteUser.Field()
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
