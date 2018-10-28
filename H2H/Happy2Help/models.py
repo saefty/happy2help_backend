@@ -65,6 +65,7 @@ class Participation(models.Model):
         ('AP', 'Applied'),
         ('DE', 'Declined'),
         ('AC', 'Accepted'),
+        ('CA', 'Canceled')
     )
 
     job = models.ForeignKey(Job, on_delete=models.SET_NULL, blank=False, null=True)

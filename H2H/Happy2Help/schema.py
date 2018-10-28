@@ -3,6 +3,7 @@ import graphql_jwt
 from django.contrib.auth.models import User
 from graphene_django import DjangoObjectType
 from .models import Favourite, Rating, Participation, Event, Organisation, Report, Job, Profile
+from graphql_jwt.decorators import login_required
 
 
 class UserType(DjangoObjectType):
@@ -23,7 +24,7 @@ class UserType(DjangoObjectType):
 
     def resolve_favourite_set(self, info):
         return field_restrictor(self, info, self.favourite_set)
-    
+
 
 def field_restrictor(self, info, field):
     """ allows only the user himself access on the given field"""
@@ -56,11 +57,14 @@ class ParticipationType(DjangoObjectType):
     class Meta:
         model = Participation
 
+    """
     def resolve_user(self, info):
         if info.context.user.id != self.event.creator.id:
             raise Exception(
                 "You have to be the creator of the event to get the participators")
         return self.user
+
+    """
 
 
 class RatingType(DjangoObjectType):
@@ -76,6 +80,7 @@ class FavouriteType(DjangoObjectType):
         if info.context.user.id != self.user.id:
             raise Exception("not authorized")
         return self.user
+
 
 class ReportType(DjangoObjectType):
     class Meta:
@@ -139,19 +144,18 @@ class CreateUser(graphene.Mutation):
         email = graphene.String(required=True)
         birthday = graphene.types.datetime.Date(required=False)
 
-
     def mutate(self, info, username, password, email, **kwargs):
         user = User(
             username=username,
             email=email,
         )
-       
+
         user.set_password(password)
         user.save()
 
         profile = Profile(
-            user= User.objects.filter(username=user.username).first(),
-            birthday = kwargs.get('birthday', None),
+            user=User.objects.filter(username=user.username).first(),
+            birthday=kwargs.get('birthday', None),
         )
 
         profile.save()
@@ -159,8 +163,72 @@ class CreateUser(graphene.Mutation):
         return CreateUser(user=user, profile=profile)
 
 
+class CreateParticipation(graphene.Mutation):
+    participation = graphene.Field(ParticipationType)
+
+    class Arguments:
+        job_id = graphene.ID(required=True)
+
+    @login_required
+    def mutate(self, info, job_id):
+        user = info.context.user
+        job = Job.objects.filter(pk=job_id).first()
+
+        if Participation.objects.filter(user=user, job=job):
+            raise Exception("User already applied")
+
+        participation = Participation(
+            job=job,
+            user=user,
+            state="AP"
+        )
+        participation.save()
+
+        return CreateParticipation(participation=participation)
+
+
+class UpdateParticipation(graphene.Mutation):
+    participation = graphene.Field(ParticipationType)
+
+    class Arguments:
+        participation_id = graphene.ID(required=True)
+        state = graphene.String(required=True)
+
+    @login_required
+    def mutate(self, info, state, participation_id):
+        user = info.context.user
+        participation = Participation.objects.filter(pk=participation_id).first()
+        event_creator = participation.job.event.creator
+        job = participation.job
+
+        if state == "CA":
+            if user != participation.user:
+                raise Exception("You need to be the participator")
+            if participation.state == "AC": #case user cancels after he was accepted
+                job.openpositions = job.openpositions + 1
+                job.save()
+            participation.state = state
+            participation.save()
+            return UpdateParticipation(participation=participation)
+
+        #if event_creator != user:
+        #    raise Exception("You need to be the event creator")
+
+        if state == "AC" and participation.state != "AC": #case event creator accepts user
+            job.openpositions = job.openpositions - 1
+            job.save()
+        elif state == "DE" and participation.state == "AC":#case event creator declines user after he accepted him
+            job.openpositions = job.openpositions + 1
+            job.save()
+        participation.state = state
+        participation.save()
+        return UpdateParticipation(participation=participation)
+
+
 class Mutation(graphene.AbstractType):
     create_user = CreateUser.Field()
+    create_participation = CreateParticipation.Field()
+    update_participaion = UpdateParticipation.Field()
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
