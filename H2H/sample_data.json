@@ -1,4 +1,184 @@
 [
+<<<<<<< H2H/sample_data.json
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$120000$f9FCEl4PDmqa$mnHDgEEMPlSI2EkhucrBWJ/tiRHPfca3u+nX45tocT4=",
+    "last_login": "2018-10-23T14:18:45.066Z",
+    "is_superuser": true,
+    "username": "roOt",
+    "first_name": "",
+    "last_name": "",
+    "email": "root.1drone@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2018-10-19T14:41:47.921Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$120000$bkLcsn1SfJ6O$eMGcbC+Pjg68Rc8b0DGuey+x1P1cE1WBZyhWClm7/Uw=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Jens",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2018-10-19T15:36:27.723Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$120000$PBdDRifUSbHS$TtCR/Rk6kByFFkhyE/17KX4yBhLUxvCMX14sC5BmaEg=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Sven",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2018-10-19T15:36:50.467Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$120000$Rer7x0OP8SaJ$knRM6+ZRa/pRiL/QWLHGWdR7RBXIPFDp6/ASkiaWxu0=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "benedickt",
+    "first_name": "Lars",
+    "last_name": "Helm",
+    "email": "larsh@aol.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2018-10-23T14:22:16Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 5,
+  "fields": {
+    "password": "pbkdf2_sha256$120000$NhPwPA0CXpRs$rcbP0llHQ9qZDR+c+FBECxYP7s8cNOQRzGsiab6faMk=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Frederik",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2018-10-23T14:23:29Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 6,
+  "fields": {
+    "password": "pbkdf2_sha256$120000$fSiCuiRe1QJm$AE/d05lLvQ4MnFHnMs0v7GHyra7ZVr7zJNVaPz8FgMM=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "chriswilson",
+    "first_name": "Chris",
+    "last_name": "",
+    "email": "chriswilson@pathofexile.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2018-10-23T14:26:17Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "Happy2Help.organisation",
+  "pk": 1,
+  "fields": {
+    "name": "DRK",
+    "admin": 1,
+    "description": "Tut allen gut",
+    "members": [
+      2
+    ]
+  }
+},
+{
+  "model": "Happy2Help.organisation",
+  "pk": 2,
+  "fields": {
+    "name": "DLRG",
+    "admin": 1,
+    "description": "Immer vor Ort!",
+    "members": [
+      2,
+      3
+    ]
+  }
+},
+{
+  "model": "Happy2Help.organisation",
+  "pk": 3,
+  "fields": {
+    "name": "Evil Corp",
+    "admin": 1,
+    "description": "Geheim!",
+    "members": [
+      1
+    ]
+  }
+},
+{
+  "model": "Happy2Help.organisation",
+  "pk": 4,
+  "fields": {
+    "name": "Aktion Deutschland Hilft",
+    "admin": 1,
+    "description": "B\u00fcndnis 23 deutscher Hilfsorganisationen - mit DZI Spendensiegel.",
+    "members": [
+      5,
+      6
+    ]
+  }
+},
+{
+  "model": "Happy2Help.organisation",
+  "pk": 5,
+  "fields": {
+    "name": "arche NoVa e.V.",
+    "admin": 1,
+    "description": "arche noVa hat 2017 weltweit insgesamt 25 Projekte mit einem Volumen von 13,47 Mio. Euro in 15 Projektl\u00e4ndern durchgef\u00fchrt. Die Ausgaben f\u00fcr \u00d6ffentlichkeitsarbeit und Werbung sowie allgemeine Verwaltung lagen bei 3,33 Prozent",
+    "members": [
+      4
+    ]
+  }
+},
+{
+  "model": "Happy2Help.organisation",
+  "pk": 6,
+  "fields": {
+    "name": "UNICEF Deutschland",
+    "admin": 1,
+    "description": "Das Kinderhilfswerk der Vereinten Nationen ist eines der entwicklungspolitischen Organe der Vereinten Nationen. Es wurde am 11. Dezember 1946 gegr\u00fcndet, zun\u00e4chst um Kindern in Europa nach dem Zweiten Weltkrieg zu helfen.",
+    "members": [
+=======
     {
         "model": "auth.user",
         "pk": 1,
@@ -171,6 +351,7 @@
             "name": "UNICEF Deutschland",
             "description": "Das Kinderhilfswerk der Vereinten Nationen ist eines der entwicklungspolitischen Organe der Vereinten Nationen. Es wurde am 11. Dezember 1946 gegr\u00fcndet, zun\u00e4chst um Kindern in Europa nach dem Zweiten Weltkrieg zu helfen.",
             "member": [
+>>>>>>> H2H/sample_data.json
       2
     ]
         }

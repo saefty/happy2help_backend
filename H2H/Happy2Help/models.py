@@ -7,9 +7,10 @@ from django.dispatch import receiver
 
 
 class Organisation(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, unique=True)
+    admin =  models.ForeignKey(User, related_name='adm', on_delete=models.CASCADE)
     description = models.TextField()
-    member = models.ManyToManyField(User)
+    members = models.ManyToManyField(User)
 
     def __str__(self):
         return self.name
