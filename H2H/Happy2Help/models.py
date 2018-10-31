@@ -39,9 +39,11 @@ class Job(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    openpositions = models.IntegerField(default=999)
+
 
     def __str__(self):
-        return self.name
+        return str(self.name) + " at the event " + str(self.event)
 
 
 class Rating(models.Model):
@@ -58,12 +60,25 @@ class Rating(models.Model):
 
 
 class Participation(models.Model):
-    event = models.ForeignKey(Event, on_delete=models.SET_NULL, blank=False, null=True) # partip nicht löschen wenn event gelöscht wird. etwas besseres als NULL wär gut...
+    #event = models.ForeignKey(Event, on_delete=models.SET_NULL, blank=False, null=True) # partip nicht löschen wenn event gelöscht wird. etwas besseres als NULL wär gut...
+    PARTICIPATION_STATES = (
+        ('PA', 'Participated'),
+        ('AP', 'Applied'),
+        ('DE', 'Declined'),
+        ('AC', 'Accepted'),
+        ('CA', 'Canceled')
+    )
+
+    job = models.ForeignKey(Job, on_delete=models.SET_NULL, blank=False, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE) # wenn user gelöscht, dann ist particip auch weg
     rating = models.ForeignKey(Rating, on_delete=models.SET_NULL, blank=True, null=True)
+    state = models.CharField(max_length=2, choices=PARTICIPATION_STATES, default='AP')
+
+
+    
 
     def __str__(self):
-        return str(self.user) + ' attends ' + str(self.event)
+        return str(self.user) + ' attends ' + str(self.job)
 
 
 class Favourite(models.Model):

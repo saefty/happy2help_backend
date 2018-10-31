@@ -58,11 +58,14 @@ class ParticipationType(DjangoObjectType):
     class Meta:
         model = Participation
 
+    """
     def resolve_user(self, info):
         if info.context.user.id != self.event.creator.id:
             raise Exception(
                 "You have to be the creator of the event to get the participators")
         return self.user
+
+    """
 
 
 class RatingType(DjangoObjectType):
@@ -147,6 +150,8 @@ class CreateUser(graphene.Mutation):
             username=username,
             email=email,
         )
+
+
         user.set_password(password)
         user.save()
         
@@ -158,6 +163,67 @@ class CreateUser(graphene.Mutation):
 
         return CreateUser(user=user, profile=profile)
 
+
+class CreateParticipation(graphene.Mutation):
+    participation = graphene.Field(ParticipationType)
+
+    class Arguments:
+        job_id = graphene.ID(required=True)
+
+    @login_required
+    def mutate(self, info, job_id):
+        user = info.context.user
+        job = Job.objects.filter(pk=job_id).first()
+
+        if Participation.objects.filter(user=user, job=job):
+            raise Exception("User already applied")
+
+        participation = Participation(
+            job=job,
+            user=user,
+            state="AP"
+        )
+        participation.save()
+
+        return CreateParticipation(participation=participation)
+
+
+class UpdateParticipation(graphene.Mutation):
+    participation = graphene.Field(ParticipationType)
+
+    class Arguments:
+        participation_id = graphene.ID(required=True)
+        state = graphene.String(required=True)
+
+    @login_required
+    def mutate(self, info, state, participation_id):
+        user = info.context.user
+        participation = Participation.objects.filter(pk=participation_id).first()
+        event_creator = participation.job.event.creator
+        job = participation.job
+
+        if state == "CA":
+            if user != participation.user:
+                raise Exception("You need to be the participator")
+            if participation.state == "AC": #case user cancels after he was accepted
+                job.openpositions = job.openpositions + 1
+                job.save()
+            participation.state = state
+            participation.save()
+            return UpdateParticipation(participation=participation)
+
+        #if event_creator != user:
+        #    raise Exception("You need to be the event creator")
+
+        if state == "AC" and participation.state != "AC": #case event creator accepts user
+            job.openpositions = job.openpositions - 1
+            job.save()
+        elif state == "DE" and participation.state == "AC":#case event creator declines user after he accepted him
+            job.openpositions = job.openpositions + 1
+            job.save()
+        participation.state = state
+        participation.save()
+        return UpdateParticipation(participation=participation)
 
 
 class UpdateUser(graphene.Mutation):
@@ -262,6 +328,8 @@ class DeleteOrganisation(graphene.Mutation):
 
 class Mutation(graphene.AbstractType):
     create_user = CreateUser.Field()
+    create_participation = CreateParticipation.Field()
+    update_participaion = UpdateParticipation.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
     create_organisation = CreateOrganisation.Field()
