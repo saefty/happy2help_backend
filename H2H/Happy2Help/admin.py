@@ -2,7 +2,19 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 
-from Happy2Help.models import Profile, Organisation, Event, Job, Participation, Rating, Favourite, Report, Location, Profile
+from .models import (
+    Profile,
+    Organisation,
+    Event,
+    Job,
+    Participation,
+    Rating,
+    Favourite,
+    Report,
+    Location,
+    Skill,
+    HasSkill
+)
 
 
 # Define an inline admin descriptor for Profile model
@@ -35,6 +47,16 @@ class JobAdmin(admin.ModelAdmin):
 
 @admin.register(Participation)
 class ParticipationAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Skill)
+class SkillAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(HasSkill)
+class HasSkillAdmin(admin.ModelAdmin):
     pass
 
 
