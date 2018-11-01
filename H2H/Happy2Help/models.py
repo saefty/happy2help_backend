@@ -2,7 +2,6 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
 # Create your models here.
 
 
@@ -15,10 +14,15 @@ class Organisation(models.Model):
         return self.name
 
 
+
+
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     birthday = models.DateField(blank=True, null=True)
     creditPoints = models.IntegerField(default=0)
+
 
     def __str__(self):
         return str(self.user)
@@ -30,15 +34,18 @@ class Event(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True) # es gibt immer einen creator aber nicht immer eine organisation
     creator = models.ForeignKey(User, on_delete=models.CASCADE) # wird doch gebraucht weil ein user ohne orga auch erstellen kann!
 
+
     def __str__(self):
         return self.name
 
 
 class Job(models.Model):
     name = models.CharField(max_length=200)
-    description = models.TextField()
+    description = models.TextField(null=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    openpositions = models.IntegerField(default=999)
+    total_positions = models.IntegerField(default=999)
+    open_positions = models.IntegerField(default=999)
+    canceled = models.BooleanField(default=0)
 
 
     def __str__(self):
@@ -61,11 +68,11 @@ class Rating(models.Model):
 class Participation(models.Model):
     #event = models.ForeignKey(Event, on_delete=models.SET_NULL, blank=False, null=True) # partip nicht löschen wenn event gelöscht wird. etwas besseres als NULL wär gut...
     PARTICIPATION_STATES = (
-        ('PA', 'Participated'),
-        ('AP', 'Applied'),
-        ('DE', 'Declined'),
-        ('AC', 'Accepted'),
-        ('CA', 'Canceled')
+        ('1', 'Participated'),
+        ('2', 'Applied'),
+        ('3', 'Declined'),
+        ('4', 'Accepted'),
+        ('5', 'Canceled'),
     )
 
     job = models.ForeignKey(Job, on_delete=models.SET_NULL, blank=False, null=True)
@@ -106,3 +113,6 @@ class Report(models.Model):
 
     def __str__(self):
         return self.reason
+
+
+
