@@ -13,6 +13,7 @@ class Organisation(models.Model):
     def __str__(self):
         return self.name
 
+
 class Location(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=6) 
     latitude = models.DecimalField(max_digits=9, decimal_places=6) 
@@ -20,8 +21,6 @@ class Location(models.Model):
     
     def __str__(self):
         return str(self.name)
-
-
 
 
 class Profile(models.Model):
@@ -61,7 +60,6 @@ class Event(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE) # wird doch gebraucht weil ein user ohne orga auch erstellen kann!
     location = models.OneToOneField(Location, on_delete=models.CASCADE , null=True)
 
-
     def __str__(self):
         return self.name
 
@@ -72,7 +70,6 @@ class Job(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     total_positions = models.IntegerField(default=999)
     open_positions = models.IntegerField(default=999)
-
 
     def __str__(self):
         return str(self.name) + " at the event " + str(self.event)
@@ -92,25 +89,18 @@ class Rating(models.Model):
 
 
 class Participation(models.Model):
-    #event = models.ForeignKey(Event, on_delete=models.SET_NULL, blank=False, null=True) # partip nicht löschen wenn event gelöscht wird. etwas besseres als NULL wär gut...
     PARTICIPATION_STATES = (
         ('PA', 'Participated'),
         ('AP', 'Applied'),
         ('DE', 'Declined'),
         ('AC', 'Accepted'),
         ('CA', 'Canceled'),
-
-
-
     )
 
     job = models.ForeignKey(Job, on_delete=models.SET_NULL, blank=False, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE) # wenn user gelöscht, dann ist particip auch weg
     rating = models.ForeignKey(Rating, on_delete=models.SET_NULL, blank=True, null=True)
     state = models.CharField(max_length=2, choices=PARTICIPATION_STATES, default='AP')
-
-
-    
 
     def __str__(self):
         return str(self.user) + ' attends ' + str(self.job)
