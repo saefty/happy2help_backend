@@ -8,7 +8,7 @@ from django.dispatch import receiver
 class Organisation(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
-    member = models.ManyToManyField(User)
+    members = models.ManyToManyField(User)
 
     def __str__(self):
         return self.name
