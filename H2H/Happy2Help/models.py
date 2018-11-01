@@ -20,7 +20,7 @@ class Location(models.Model):
     name = models.CharField(max_length=200)
     
     def __str__(self):
-        return str(self.name)
+        return self.name
 
 
 class Profile(models.Model):
@@ -28,10 +28,6 @@ class Profile(models.Model):
     birthday = models.DateField(blank=True, null=True)
     creditPoints = models.IntegerField(default=0)
     location = models.OneToOneField(Location, on_delete=models.CASCADE , null=True)
-
-    def delete(self, *args, **kwargs):
-        self.location.delete()
-        return super().delete(*args, **kwargs)
 
     def __str__(self):
         return str(self.user)
