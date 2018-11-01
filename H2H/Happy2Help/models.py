@@ -25,6 +25,22 @@ class Profile(models.Model):
         return str(self.user)
 
 
+class Skill(models.Model):
+    name = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.name
+
+
+class HasSkill(models.Model):
+    skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    approved = models.BooleanField(default=0)
+
+    def __str__(self):
+        return str(self.user) + ' has skill: ' + str(self.skill)
+
+
 class Event(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
