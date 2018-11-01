@@ -1,17 +1,24 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-
 # Create your models here.
 
 
 class Organisation(models.Model):
-    name = models.CharField(max_length=200, unique=True)
-    admin =  models.ForeignKey(User, related_name='adm', on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
     description = models.TextField()
     members = models.ManyToManyField(User)
 
+    def __str__(self):
+        return self.name
+
+
+class Location(models.Model):
+    longitude = models.DecimalField(max_digits=9, decimal_places=6) 
+    latitude = models.DecimalField(max_digits=9, decimal_places=6) 
+    name = models.CharField(max_length=200)
+    
     def __str__(self):
         return self.name
 
@@ -20,6 +27,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     birthday = models.DateField(blank=True, null=True)
     creditPoints = models.IntegerField(default=0)
+    location = models.OneToOneField(Location, on_delete=models.CASCADE , null=True)
 
     def __str__(self):
         return str(self.user)
@@ -46,6 +54,7 @@ class Event(models.Model):
     description = models.TextField()
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True) # es gibt immer einen creator aber nicht immer eine organisation
     creator = models.ForeignKey(User, on_delete=models.CASCADE) # wird doch gebraucht weil ein user ohne orga auch erstellen kann!
+    location = models.OneToOneField(Location, on_delete=models.CASCADE , null=True)
 
     def __str__(self):
         return self.name
@@ -53,10 +62,10 @@ class Event(models.Model):
 
 class Job(models.Model):
     name = models.CharField(max_length=200)
-    description = models.TextField()
+    description = models.TextField(null=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    openpositions = models.IntegerField(default=999)
-
+    total_positions = models.IntegerField(default=999)
+    open_positions = models.IntegerField(default=999)
 
     def __str__(self):
         return str(self.name) + " at the event " + str(self.event)
@@ -76,22 +85,18 @@ class Rating(models.Model):
 
 
 class Participation(models.Model):
-    #event = models.ForeignKey(Event, on_delete=models.SET_NULL, blank=False, null=True) # partip nicht löschen wenn event gelöscht wird. etwas besseres als NULL wär gut...
     PARTICIPATION_STATES = (
         ('PA', 'Participated'),
         ('AP', 'Applied'),
         ('DE', 'Declined'),
         ('AC', 'Accepted'),
-        ('CA', 'Canceled')
+        ('CA', 'Canceled'),
     )
 
     job = models.ForeignKey(Job, on_delete=models.SET_NULL, blank=False, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE) # wenn user gelöscht, dann ist particip auch weg
     rating = models.ForeignKey(Rating, on_delete=models.SET_NULL, blank=True, null=True)
     state = models.CharField(max_length=2, choices=PARTICIPATION_STATES, default='AP')
-
-
-    
 
     def __str__(self):
         return str(self.user) + ' attends ' + str(self.job)
@@ -123,3 +128,16 @@ class Report(models.Model):
 
     def __str__(self):
         return self.reason
+
+
+#delete functions:
+
+@receiver(post_delete, sender=Profile)
+def post_delete_location_for_profile(sender, instance, *args, **kwargs):
+    if instance.location:
+        instance.location.delete()
+
+@receiver(post_delete, sender=Event)
+def post_delete_location_for_event(sender, instance, *args, **kwargs):
+    if instance.location:
+        instance.location.delete()

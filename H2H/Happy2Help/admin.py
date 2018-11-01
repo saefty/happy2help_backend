@@ -11,6 +11,7 @@ from .models import (
     Rating,
     Favourite,
     Report,
+    Location,
     Skill,
     HasSkill
 )
@@ -20,7 +21,7 @@ from .models import (
 class ProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
-    fields = ('birthday',)
+    fields = ('birthday','location')
     verbose_name_plural = 'profiles'
 
 
@@ -73,6 +74,15 @@ class FavouriteAdmin(admin.ModelAdmin):
 class ReportAdmin(admin.ModelAdmin):
     pass
 
+
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    pass
 
 # Re-register UserAdmin
 admin.site.unregister(User)
