@@ -25,11 +25,6 @@ SECRET_KEY = '!h)j=k*h9^m=0rxigpgmi11rq_tc5q30n@-ju*%=@^()2a8-6d'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('PRODUCTION', '0') == '0'
 
-ALLOWED_HOSTS = ['h2h-dev.taher.io', 'localhost', '127.0.0.1', '0.0.0.0']
-
-
-# Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
