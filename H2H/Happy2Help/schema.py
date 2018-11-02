@@ -10,6 +10,7 @@ class UserType(DjangoObjectType):
     class Meta:
         model = User
 
+    #restricted Fields:
     def resolve_organisation_set(self, info):
         return field_restrictor(self, info, self.organisation_set)
 
@@ -175,10 +176,10 @@ class CreateParticipation(graphene.Mutation):
         user = info.context.user
         job = Job.objects.filter(pk=job_id).first()
 
-        if Participation.objects.filter(user=user, job=job):
+        if Participation.objects.filter(user=user, job=job): #avoids multiple participations from a user to the same job
             raise Exception("User already applied")
         
-        if job.canceled == True;
+        if job.canceled == True: #can not apply to a canceled job
             raise Exception("Job is canceled/inactive")
 
         participation = Participation(
@@ -201,12 +202,12 @@ class UpdateParticipation(graphene.Mutation):
     @login_required
     def mutate(self, info, state, participation_id):
         user = info.context.user
-        participation = Participation.objects.filter(
-            pk=participation_id).first()
+        participation = Participation.objects.get(
+            pk=participation_id)
         event_creator = participation.job.event.creator
         job = participation.job
 
-        if job.canceled == True;
+        if job.canceled == True: #it is not possible to change the state of a canceled/inactive job
             raise Exception("Job is canceled/inactive")
 
         if state == 5:  # 5=canceled
@@ -306,27 +307,26 @@ class UpdateJob(graphene.Mutation):
     @login_required
     def mutate(self, info, **kwargs):
         user = info.context.user
-        # event = Event.objects.get(event_id)
         job = Job.objects.get(pk=kwargs.get('job_id'))
         event = job.event
 
         if event.creator != user:
             raise Exception("You need to be the event creator to create a job")
 
-        if kwargs.get('job_name', None):
-            if Job.objects.filter(name=kwargs.get('job_name'), event=event):
+        if kwargs.get('job_name', None): 
+            if Job.objects.filter(name=kwargs.get('job_name'), event=event).exists(): #no jobs with the same name at the same event
                 raise Exception("This Job already exists")
             job.name = kwargs.get('job_name')
 
         if kwargs.get('job_description', None):
             job.description = kwargs.get('job_description')
 
-        if kwargs.get('total_positions', None):
+        if kwargs.get('total_positions', None): 
             total_positions = kwargs.get('total_positions')
-            if -total_positions + job.total_positions > job.total_positions:
+            if -total_positions + job.total_positions > job.total_positions: #make sure not more users are accepted than possible
                 raise Exception(
                     "already accepted too many users, decline some users")
-            job.open_positions = total_positions - job.total_positions + job.open_positions
+            job.open_positions = total_positions - job.total_positions + job.open_positions #keeping open position up to date
             job.total_positions = total_positions
 
         job.save()
@@ -342,18 +342,18 @@ class DeleteJob(graphene.Mutation):
     @login_required
     def mutate(self, info, **kwargs):
         user = info.context.user
-        # event = Event.objects.get(event_id)
         job = Job.objects.get(pk=kwargs.get('job_id'))
         event = job.event
-        participations = Participation.objects.get(job=job)
 
         if event.creator != user:
             raise Exception("You need to be the event creator to delete a job")
 
-        if not participations:
-            job.delete()
+        
+        if not Participation.objects.filter(job=job).exists(): #if there are no participations 
+            job.delete() #the job gets deleted in the db immediatly
             return DeleteJob(job=job)
         
+        #if there are already participations the job is marked as canceled but not deleted
         job.canceled = True
         job.save()
         return DeleteJob(job=job)

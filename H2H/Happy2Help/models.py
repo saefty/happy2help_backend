@@ -68,17 +68,17 @@ class Rating(models.Model):
 class Participation(models.Model):
     #event = models.ForeignKey(Event, on_delete=models.SET_NULL, blank=False, null=True) # partip nicht löschen wenn event gelöscht wird. etwas besseres als NULL wär gut...
     PARTICIPATION_STATES = (
-        ('1', 'Participated'),
-        ('2', 'Applied'),
-        ('3', 'Declined'),
-        ('4', 'Accepted'),
-        ('5', 'Canceled'),
+        (1, 'Participated'),
+        (2, 'Applied'),
+        (3, 'Declined'),
+        (4, 'Accepted'),
+        (5, 'Canceled'),
     )
 
     job = models.ForeignKey(Job, on_delete=models.SET_NULL, blank=False, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE) # wenn user gelöscht, dann ist particip auch weg
     rating = models.ForeignKey(Rating, on_delete=models.SET_NULL, blank=True, null=True)
-    state = models.CharField(max_length=2, choices=PARTICIPATION_STATES, default='AP')
+    state = models.IntegerField(choices=PARTICIPATION_STATES, default=2)
 
 
     
