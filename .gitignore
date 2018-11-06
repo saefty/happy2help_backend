@@ -2,7 +2,6 @@ env/
 *.pyc
 H2H/db.sqlite3
 __pycache__/
-migrations/
 .idea/
 
 
