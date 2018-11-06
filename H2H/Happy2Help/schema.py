@@ -2,7 +2,7 @@ import graphene
 import graphql_jwt
 from django.contrib.auth.models import User
 from graphene_django import DjangoObjectType
-from .models import Favourite, Rating, Participation, Event, Organisation, Report, Job, Profile
+from .models import Favourite, Rating, Participation, Event, Organisation, Report, Job, Profile, Location
 from graphql_jwt.decorators import login_required
 
 
@@ -86,6 +86,10 @@ class FavouriteType(DjangoObjectType):
 class ReportType(DjangoObjectType):
     class Meta:
         model = Report
+
+class LocationType(DjangoObjectType):
+    class Meta:
+        model = Location
 
 
 class Query(graphene.ObjectType):
