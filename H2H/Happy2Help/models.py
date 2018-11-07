@@ -26,8 +26,8 @@ class Location(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     birthday = models.DateField(blank=True, null=True)
-    creditPoints = models.IntegerField(default=0)
-    location = models.OneToOneField(Location, on_delete=models.CASCADE , null=True)
+    credit_points = models.IntegerField(default=0)
+    location = models.OneToOneField(Location, on_delete=models.CASCADE , blank=True, null=True)
 
     def __str__(self):
         return str(self.user)
@@ -43,7 +43,7 @@ class Skill(models.Model):
 class HasSkill(models.Model):
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    approved = models.BooleanField(default=0)
+    approved = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.user) + ' has skill: ' + str(self.skill)
@@ -52,8 +52,8 @@ class HasSkill(models.Model):
 class Event(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True) # es gibt immer einen creator aber nicht immer eine organisation
-    creator = models.ForeignKey(User, on_delete=models.CASCADE) # wird doch gebraucht weil ein user ohne orga auch erstellen kann!
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
     location = models.OneToOneField(Location, on_delete=models.CASCADE , null=True)
 
     def __str__(self):
