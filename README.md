@@ -35,6 +35,14 @@ python manage.py createsuperuser
 # run development server
 python manage.py runserver
 ```
+```
+# save data to file
+python manage.py dumpdata Happy2Help auth.user --indent=2 > sample_data.json
+```
+```
+# load data from file
+python manage.py loaddata sample_data.json
+```
 ```python
 import this
 import antigravity

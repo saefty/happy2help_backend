@@ -21,13 +21,20 @@ from .models import (
 class ProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
-    fields = ('birthday','location')
+    fields = ('birthday','location', 'credit_points')
     verbose_name_plural = 'profiles'
+
+
+class SkillInline(admin.StackedInline):
+    model = HasSkill
+    can_delete = False
+    fields = ('user', 'skill', 'approved')
+    verbose_name_plural = 'has_skills'
 
 
 # Define a new User admin
 class UserAdmin(BaseUserAdmin):
-    inlines = (ProfileInline,)
+    inlines = (ProfileInline, SkillInline,)
 
 
 @admin.register(Organisation)
