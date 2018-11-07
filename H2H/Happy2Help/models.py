@@ -66,6 +66,7 @@ class Job(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     total_positions = models.IntegerField(default=999)
     open_positions = models.IntegerField(default=999)
+    canceled = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.name) + " at the event " + str(self.event)

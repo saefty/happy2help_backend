@@ -46,6 +46,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(null=True)),
                 ('total_positions', models.IntegerField(default=999)),
                 ('open_positions', models.IntegerField(default=999)),
+                ('canceled', models.BooleanField(default=0)),
                 ('event', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='Happy2Help.Event')),
             ],
         ),
@@ -71,7 +72,7 @@ class Migration(migrations.Migration):
             name='Participation',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('state', models.CharField(choices=[('PA', 'Participated'), ('AP', 'Applied'), ('DE', 'Declined'), ('AC', 'Accepted'), ('CA', 'Canceled')], default='AP', max_length=2)),
+                ('state', models.IntegerField(choices=[(1, 'Participated'), (2, 'Applied'), (3, 'Declined'), (4, 'Accepted'), (5, 'Canceled')], default=2)),
                 ('job', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='Happy2Help.Job')),
             ],
         ),
