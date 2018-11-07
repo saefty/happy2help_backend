@@ -2,20 +2,39 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 
-from Happy2Help.models import Profile, Organisation, Event, Job, Participation, Rating, Favourite, Report
+from .models import (
+    Profile,
+    Organisation,
+    Event,
+    Job,
+    Participation,
+    Rating,
+    Favourite,
+    Report,
+    Location,
+    Skill,
+    HasSkill
+)
 
 
 # Define an inline admin descriptor for Profile model
 class ProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
-    fields = ('birthday',)
+    fields = ('birthday','location', 'credit_points')
     verbose_name_plural = 'profiles'
+
+
+class SkillInline(admin.StackedInline):
+    model = HasSkill
+    can_delete = False
+    fields = ('user', 'skill', 'approved')
+    verbose_name_plural = 'has_skills'
 
 
 # Define a new User admin
 class UserAdmin(BaseUserAdmin):
-    inlines = (ProfileInline,)
+    inlines = (ProfileInline, SkillInline,)
 
 
 @admin.register(Organisation)
@@ -38,6 +57,16 @@ class ParticipationAdmin(admin.ModelAdmin):
     pass
 
 
+@admin.register(Skill)
+class SkillAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(HasSkill)
+class HasSkillAdmin(admin.ModelAdmin):
+    pass
+
+
 @admin.register(Rating)
 class RatingAdmin(admin.ModelAdmin):
     pass
@@ -52,6 +81,15 @@ class FavouriteAdmin(admin.ModelAdmin):
 class ReportAdmin(admin.ModelAdmin):
     pass
 
+
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    pass
 
 # Re-register UserAdmin
 admin.site.unregister(User)
