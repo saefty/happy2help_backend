@@ -382,6 +382,10 @@ class UpdateOrganisation(graphene.Mutation):
         new_description = graphene.String()
         add_member = graphene.ID()
         delete_member = graphene.ID()
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        user = info.context.user
         organisation = Organisation.objects.get(pk=kwargs.get('org_id'))
 
         if user != organisation.admin:
