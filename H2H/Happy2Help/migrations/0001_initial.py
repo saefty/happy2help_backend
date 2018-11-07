@@ -32,6 +32,13 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='HasSkill',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('approved', models.BooleanField(default=0)),
+            ],
+        ),
+        migrations.CreateModel(
             name='Job',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -44,12 +51,21 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='Location',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('longitude', models.DecimalField(decimal_places=6, max_digits=9)),
+                ('latitude', models.DecimalField(decimal_places=6, max_digits=9)),
+                ('name', models.CharField(max_length=200)),
+            ],
+        ),
+        migrations.CreateModel(
             name='Organisation',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=200)),
                 ('description', models.TextField()),
-                ('member', models.ManyToManyField(to=settings.AUTH_USER_MODEL)),
+                ('members', models.ManyToManyField(to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
@@ -66,6 +82,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('birthday', models.DateField(blank=True, null=True)),
                 ('creditPoints', models.IntegerField(default=0)),
+                ('location', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, to='Happy2Help.Location')),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
@@ -92,6 +109,13 @@ class Migration(migrations.Migration):
                 ('user_b', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='report_to_user', to=settings.AUTH_USER_MODEL)),
             ],
         ),
+        migrations.CreateModel(
+            name='Skill',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=200)),
+            ],
+        ),
         migrations.AddField(
             model_name='participation',
             name='rating',
@@ -101,6 +125,21 @@ class Migration(migrations.Migration):
             model_name='participation',
             name='user',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='hasskill',
+            name='skill',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='Happy2Help.Skill'),
+        ),
+        migrations.AddField(
+            model_name='hasskill',
+            name='user',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='event',
+            name='location',
+            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, to='Happy2Help.Location'),
         ),
         migrations.AddField(
             model_name='event',

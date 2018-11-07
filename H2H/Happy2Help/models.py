@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 # Create your models here.
 
@@ -8,8 +8,17 @@ from django.dispatch import receiver
 class Organisation(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
-    member = models.ManyToManyField(User)
+    members = models.ManyToManyField(User)
 
+    def __str__(self):
+        return self.name
+
+
+class Location(models.Model):
+    longitude = models.DecimalField(max_digits=9, decimal_places=6) 
+    latitude = models.DecimalField(max_digits=9, decimal_places=6) 
+    name = models.CharField(max_length=200)
+    
     def __str__(self):
         return self.name
 
@@ -17,10 +26,27 @@ class Organisation(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     birthday = models.DateField(blank=True, null=True)
-    credit_points = models.IntegerField(default=0)
+    creditPoints = models.IntegerField(default=0)
+    location = models.OneToOneField(Location, on_delete=models.CASCADE , null=True)
 
     def __str__(self):
         return str(self.user)
+
+
+class Skill(models.Model):
+    name = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.name
+
+
+class HasSkill(models.Model):
+    skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    approved = models.BooleanField(default=0)
+
+    def __str__(self):
+        return str(self.user) + ' has skill: ' + str(self.skill)
 
 
 class Event(models.Model):
@@ -28,6 +54,7 @@ class Event(models.Model):
     description = models.TextField()
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True) # es gibt immer einen creator aber nicht immer eine organisation
     creator = models.ForeignKey(User, on_delete=models.CASCADE) # wird doch gebraucht weil ein user ohne orga auch erstellen kann!
+    location = models.OneToOneField(Location, on_delete=models.CASCADE , null=True)
 
     def __str__(self):
         return self.name
@@ -104,4 +131,14 @@ class Report(models.Model):
         return self.reason
 
 
+#delete functions:
 
+@receiver(post_delete, sender=Profile)
+def post_delete_location_for_profile(sender, instance, *args, **kwargs):
+    if instance.location:
+        instance.location.delete()
+
+@receiver(post_delete, sender=Event)
+def post_delete_location_for_event(sender, instance, *args, **kwargs):
+    if instance.location:
+        instance.location.delete()

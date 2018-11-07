@@ -2,7 +2,7 @@ import graphene
 import graphql_jwt
 from django.contrib.auth.models import User
 from graphene_django import DjangoObjectType
-from .models import Favourite, Rating, Participation, Event, Organisation, Report, Job, Profile
+from .models import Favourite, Rating, Participation, Event, Organisation, Report, Job, Profile, Location
 from graphql_jwt.decorators import login_required
 
 
@@ -78,6 +78,10 @@ class FavouriteType(DjangoObjectType):
 class ReportType(DjangoObjectType):
     class Meta:
         model = Report
+
+class LocationType(DjangoObjectType):
+    class Meta:
+        model = Location
 
 
 class Query(graphene.ObjectType):
@@ -350,15 +354,91 @@ class DeleteJob(graphene.Mutation):
         return DeleteJob(job=job)
 
 
+class CreateOrganisation(graphene.Mutation):
+    organisation = graphene.Field(OrganisationType)
+
+    class Arguments:
+        name = graphene.String(required=True)
+        description = graphene.String(required=True)
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        organisation = Organisation(
+            admin = info.context.user,
+            name = kwargs.get('name'),
+            description = kwargs.get('description')
+        )
+        organisation.save()
+        organisation.members.add(info.context.user)
+
+        return CreateOrganisation(organisation=organisation)
+
+class UpdateOrganisation(graphene.Mutation):
+    organisation = graphene.Field(OrganisationType)
+
+    class Arguments:
+        org_id = graphene.ID(required=True)
+        new_name = graphene.String()
+        new_description = graphene.String()
+        add_member = graphene.ID()
+        delete_member = graphene.ID()
+        organisation = Organisation.objects.get(pk=kwargs.get('org_id'))
+
+        if user != organisation.admin:
+            raise Exception('You have to be the admin of this organisation to update it')
+
+        if kwargs.get('new_name', None):
+            organisation.name = kwargs.get('new_name', None)
+        if kwargs.get('new_description', None):
+            organisation.description = kwargs.get('new_description', None)
+        if kwargs.get('add_member', None):
+            organisation.members.add(User.objects.get(pk=kwargs.get('add_member')))
+        if kwargs.get('delete_member', None):
+            to_be_deleted = User.objects.get(pk=kwargs.get('delete_member'))
+            if to_be_deleted != organisation.admin:
+                organisation.members.remove(to_be_deleted)
+            else:
+                raise Exception('You cannot remove the admin of an organisation')
+
+        organisation.save()
+
+        return UpdateOrganisation(organisation=organisation)
+
+
+class DeleteOrganisation(graphene.Mutation):
+    organisation = graphene.Field(OrganisationType)
+
+    class Arguments:
+        org_id = graphene.ID(required=True)
+
+    @login_required
+    def mutate(self, info, org_id):
+        user = info.context.user
+        organisation = Organisation.objects.get(pk=org_id)
+
+        if user != organisation.admin:
+            raise Exception('You have to be the admin of this organisation to delete it')
+
+        organisation.delete()
+        return DeleteOrganisation(organisation)
+
+
 class Mutation(graphene.AbstractType):
     create_user = CreateUser.Field()
-    create_participation = CreateParticipation.Field()
-    update_participaion = UpdateParticipation.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
+    
+    create_participation = CreateParticipation.Field()
+    update_participaion = UpdateParticipation.Field()
+    
     create_job = CreateJob.Field()
     update_job = UpdateJob.Field()
     delete_job = DeleteJob.Field()
+
+    create_organisation = CreateOrganisation.Field()
+    update_organisation = UpdateOrganisation.Field()
+    delete_organisation = DeleteOrganisation.Field()
+
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
