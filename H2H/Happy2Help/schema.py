@@ -95,6 +95,7 @@ class Query(graphene.ObjectType):
     ratings = graphene.List(RatingType)
     favourites = graphene.List(FavouriteType)
     reports = graphene.List(ReportType)
+    locations = graphene.List(LocationType)
 
     def resolve_user(self, info):
         me = info.context.user
@@ -129,6 +130,8 @@ class Query(graphene.ObjectType):
     def resolve_reports(self, info, id):
         return Report.objects.all()
 
+    def resolve_locations(self, info):
+        return Location.objects.all()
 
 # Mutations
 class CreateUser(graphene.Mutation):
@@ -140,19 +143,15 @@ class CreateUser(graphene.Mutation):
         password = graphene.String(required=True)
         email = graphene.String(required=True)
         birthday = graphene.types.datetime.Date()
-        lcoation = graphene.String()
+        location = graphene.String()
 
     def mutate(self, info, username, password, email, **kwargs):
-        user = User(
-            username=username,
-            email=email,
-        )
-
+        user = User(username=username, email=email)
         user.set_password(password)
         user.save()
 
         profile = Profile(
-            user=User.objects.filter(username=user.username).first(),
+            user=user,
             birthday=kwargs.get('birthday', None),
         )
         profile.save()
@@ -266,8 +265,8 @@ class CreateJob(graphene.Mutation):
 
     class Arguments:
         event_id = graphene.ID(required=True)
-        job_name = graphene.String(required=True)
-        job_description = graphene.String()
+        name = graphene.String(required=True)
+        description = graphene.String()
         total_positions = graphene.Int(required=True)
 
     @login_required
@@ -277,12 +276,12 @@ class CreateJob(graphene.Mutation):
 
         if event.creator != user:
             raise Exception("You need to be the event creator to create a job")
-        if Job.objects.filter(name=kwargs.get('job_name'), event=event):
+        if Job.objects.filter(name=kwargs.get('name'), event=event):
             raise Exception("This Job already exists")
 
         job = Job(
-            name=kwargs.get('job_name'),
-            description=kwargs.get('job_description', None),
+            name=kwargs.get('name'),
+            description=kwargs.get('description', None),
             event=event,
             total_positions=kwargs.get('total_positions')
         )
@@ -294,27 +293,27 @@ class UpdateJob(graphene.Mutation):
     job = graphene.Field(JobType)
 
     class Arguments:
-        job_id = graphene.ID(required=True)
-        job_name = graphene.String()
-        job_description = graphene.String()
+        id = graphene.ID(required=True)
+        name = graphene.String()
+        description = graphene.String()
         total_positions = graphene.Int()
 
     @login_required
     def mutate(self, info, **kwargs):
         user = info.context.user
-        job = Job.objects.get(pk=kwargs.get('job_id'))
+        job = Job.objects.get(pk=kwargs.get('id'))
         event = job.event
 
         if event.creator != user:
             raise Exception("You need to be the event creator to create a job")
 
-        if kwargs.get('job_name', None): 
-            if Job.objects.filter(name=kwargs.get('job_name'), event=event).exists(): #no jobs with the same name at the same event
+        if kwargs.get('name', None):
+            if Job.objects.filter(name=kwargs.get('name'), event=event).exists(): #no jobs with the same name at the same event
                 raise Exception("This Job already exists")
-            job.name = kwargs.get('job_name')
+            job.name = kwargs.get('name')
 
-        if kwargs.get('job_description', None):
-            job.description = kwargs.get('job_description')
+        if kwargs.get('description', None):
+            job.description = kwargs.get('description')
 
         if kwargs.get('total_positions', None): 
             total_positions = kwargs.get('total_positions')
@@ -332,23 +331,22 @@ class DeleteJob(graphene.Mutation):
     job = graphene.Field(JobType)
 
     class Arguments:
-        job_id = graphene.ID(required=True)
+        id = graphene.ID(required=True)
 
     @login_required
     def mutate(self, info, **kwargs):
         user = info.context.user
-        job = Job.objects.get(pk=kwargs.get('job_id'))
+        job = Job.objects.get(pk=kwargs.get('id'))
         event = job.event
 
         if event.creator != user:
             raise Exception("You need to be the event creator to delete a job")
 
-        
-        if not Participation.objects.filter(job=job).exists(): #if there are no participations 
-            job.delete() #the job gets deleted in the db immediatly
+        if not Participation.objects.filter(job=job).exists(): # if there are no participations
+            job.delete() # the job gets deleted in the db immediately
             return DeleteJob(job=job)
         
-        #if there are already participations the job is marked as canceled but not deleted
+        # if there are already participations the job is marked as canceled but not deleted
         job.canceled = True
         job.save()
         return DeleteJob(job=job)
@@ -364,37 +362,38 @@ class CreateOrganisation(graphene.Mutation):
     @login_required
     def mutate(self, info, **kwargs):
         organisation = Organisation(
-            admin = info.context.user,
-            name = kwargs.get('name'),
-            description = kwargs.get('description')
+            admin=info.context.user,
+            name=kwargs.get('name'),
+            description=kwargs.get('description')
         )
         organisation.save()
         organisation.members.add(info.context.user)
 
         return CreateOrganisation(organisation=organisation)
 
+
 class UpdateOrganisation(graphene.Mutation):
     organisation = graphene.Field(OrganisationType)
 
     class Arguments:
-        org_id = graphene.ID(required=True)
-        new_name = graphene.String()
-        new_description = graphene.String()
+        id = graphene.ID(required=True)
+        name = graphene.String()
+        description = graphene.String()
         add_member = graphene.ID()
         delete_member = graphene.ID()
 
     @login_required
     def mutate(self, info, **kwargs):
         user = info.context.user
-        organisation = Organisation.objects.get(pk=kwargs.get('org_id'))
+        organisation = Organisation.objects.get(pk=kwargs.get('id'))
 
         if user != organisation.admin:
             raise Exception('You have to be the admin of this organisation to update it')
 
-        if kwargs.get('new_name', None):
-            organisation.name = kwargs.get('new_name', None)
-        if kwargs.get('new_description', None):
-            organisation.description = kwargs.get('new_description', None)
+        if kwargs.get('name', None):
+            organisation.name = kwargs.get('name', None)
+        if kwargs.get('description', None):
+            organisation.description = kwargs.get('description', None)
         if kwargs.get('add_member', None):
             organisation.members.add(User.objects.get(pk=kwargs.get('add_member')))
         if kwargs.get('delete_member', None):
@@ -413,12 +412,12 @@ class DeleteOrganisation(graphene.Mutation):
     organisation = graphene.Field(OrganisationType)
 
     class Arguments:
-        org_id = graphene.ID(required=True)
+        id = graphene.ID(required=True)
 
     @login_required
-    def mutate(self, info, org_id):
+    def mutate(self, info, id):
         user = info.context.user
-        organisation = Organisation.objects.get(pk=org_id)
+        organisation = Organisation.objects.get(pk=id)
 
         if user != organisation.admin:
             raise Exception('You have to be the admin of this organisation to delete it')
@@ -431,33 +430,21 @@ class CreateEvent(graphene.Mutation):
     event = graphene.Field(EventType)
 
     class Arguments:
+        id = graphene.ID(required=True)
         name = graphene.String(required=True)
         description = graphene.String(required=True)
-        org_id = graphene.ID(required=True)
 
     @login_required
-    def mutate(self, info, name, description, org_id):
+    def mutate(self, info, name, description, id):
         user = info.context.user
         try:
-            organisation = user.organisation_set.get(pk=org_id)
+            organisation = user.organisation_set.get(pk=id)
         except Organisation.DoesNotExist:
             raise Exception("You need to be a member of the organisation to create an event for it")
 
-        event = Event(
-            name=name,
-            description=description,
-            organisation=organisation,
-            creator=user
-        )
-        event.save()
-
+        event = Event.objects.create(name=name, description=description, organisation=organisation, creator=user)
         # initial default job for the event
-        job = Job(
-            name=name,
-            description=description,
-            event=event
-        )
-        job.save()
+        job = Job.objects.create(name=name, description=description, event=event)
 
         return CreateEvent(event=event)
 

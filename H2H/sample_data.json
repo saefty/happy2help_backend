@@ -83,7 +83,8 @@
     "description": "Wir brauchen dich als Packesel!",
     "event": 1,
     "total_positions": 15,
-    "open_positions": 15
+    "open_positions": 15,
+    "canceled": false
   }
 },
 {
@@ -94,7 +95,8 @@
     "description": "Wir suchen jemanden mit Sportbootf\u00fchrerschein",
     "event": 1,
     "total_positions": 1,
-    "open_positions": 1
+    "open_positions": 1,
+    "canceled": false
   }
 },
 {
@@ -105,7 +107,8 @@
     "description": "Wir brauchen dringend drei Rettungsschwimmer!",
     "event": 1,
     "total_positions": 3,
-    "open_positions": 3
+    "open_positions": 3,
+    "canceled": false
   }
 },
 {
@@ -116,7 +119,8 @@
     "description": "Wir brauchen jemanden um den Sch\u00e4fersee wieder voll zu machen.",
     "event": 2,
     "total_positions": 1,
-    "open_positions": 1
+    "open_positions": 1,
+    "canceled": false
   }
 },
 {
@@ -127,7 +131,8 @@
     "description": "Dringend werden 20 Regent\u00e4nzer gesucht",
     "event": 2,
     "total_positions": 20,
-    "open_positions": 20
+    "open_positions": 20,
+    "canceled": false
   }
 },
 {
@@ -138,7 +143,20 @@
     "description": "Das DRK sucht Leute mit Blut. Wir wollen das haben!",
     "event": 3,
     "total_positions": 75,
-    "open_positions": 75
+    "open_positions": 75,
+    "canceled": false
+  }
+},
+{
+  "model": "Happy2Help.job",
+  "pk": 7,
+  "fields": {
+    "name": "Tolles Event",
+    "description": "super event",
+    "event": 4,
+    "total_positions": 999,
+    "open_positions": 999,
+    "canceled": false
   }
 },
 {
@@ -146,7 +164,7 @@
   "pk": 2,
   "fields": {
     "password": "pbkdf2_sha256$120000$ph0ahbof3gQ1$yUuC1YF0B1JHGA1h4E7IKDgt3BaHEKLt+j+0ZO0SKqQ=",
-    "last_login": "2018-11-07T17:02:48Z",
+    "last_login": "2018-11-07T22:51:10.333Z",
     "is_superuser": true,
     "username": "roOt",
     "first_name": "",
@@ -327,8 +345,8 @@
   "fields": {
     "job": 2,
     "user": 2,
-    "rating": null,
-    "state": 2
+    "state": 2,
+    "rating": null
   }
 },
 {
@@ -337,8 +355,8 @@
   "fields": {
     "job": 4,
     "user": 2,
-    "rating": null,
-    "state": 2
+    "state": 2,
+    "rating": null
   }
 },
 {
@@ -347,8 +365,8 @@
   "fields": {
     "job": 3,
     "user": 10,
-    "rating": null,
-    "state": 1
+    "state": 1,
+    "rating": null
   }
 },
 {
@@ -357,8 +375,8 @@
   "fields": {
     "job": 5,
     "user": 8,
-    "rating": null,
-    "state": 3
+    "state": 3,
+    "rating": null
   }
 },
 {
@@ -367,8 +385,8 @@
   "fields": {
     "job": 1,
     "user": 6,
-    "rating": null,
-    "state": 4
+    "state": 4,
+    "rating": null
   }
 },
 {
@@ -377,8 +395,8 @@
   "fields": {
     "job": 6,
     "user": 5,
-    "rating": null,
-    "state": 4
+    "state": 4,
+    "rating": null
   }
 },
 {
@@ -387,8 +405,8 @@
   "fields": {
     "job": 6,
     "user": 3,
-    "rating": null,
-    "state": 1
+    "state": 1,
+    "rating": null
   }
 },
 {
@@ -397,8 +415,8 @@
   "fields": {
     "job": 2,
     "user": 8,
-    "rating": null,
-    "state": 1
+    "state": 1,
+    "rating": null
   }
 },
 {
@@ -407,8 +425,8 @@
   "fields": {
     "job": 5,
     "user": 7,
-    "rating": null,
-    "state": 1
+    "state": 1,
+    "rating": null
   }
 },
 {
@@ -442,6 +460,17 @@
     "organisation": 2,
     "creator": 7,
     "location": 3
+  }
+},
+{
+  "model": "Happy2Help.event",
+  "pk": 4,
+  "fields": {
+    "name": "Tolles Event",
+    "description": "super event",
+    "organisation": 4,
+    "creator": 2,
+    "location": null
   }
 },
 {
@@ -583,6 +612,7 @@
   "fields": {
     "name": "DLRG",
     "description": "Deutsche Lebensrettungsgesellschaft",
+    "admin": 3,
     "members": [
       3,
       4,
@@ -596,6 +626,7 @@
   "fields": {
     "name": "DRK",
     "description": "Deutsches Rotes Kreuz",
+    "admin": 6,
     "members": [
       6,
       7
@@ -608,9 +639,36 @@
   "fields": {
     "name": "Aktion Deutschland Hilft",
     "description": "Aktion Deutschland Hilft \u2013 gemeinsam schneller helfen!\r\n\r\nAktion Deutschland Hilft ist das B\u00fcndnis renommierter deutscher Hilfsorganisationen. Wenn schwere Katastrophen die Menschheit ersch\u00fcttern, leisten wir Nothilfe. Gemeinsam, schnell und koordiniert. Jetzt einmalig spenden oder als F\u00f6rderer regelm\u00e4\u00dfig helfen!",
+    "admin": 8,
     "members": [
       8,
       9
     ]
-
-}}]
+  }
+},
+{
+  "model": "Happy2Help.organisation",
+  "pk": 4,
+  "fields": {
+    "name": "Test Orga",
+    "description": "this is a test",
+    "admin": 2,
+    "members": [
+      2
+    ]
+  }
+},
+{
+  "model": "Happy2Help.organisation",
+  "pk": 5,
+  "fields": {
+    "name": "Herberts Orga",
+    "description": "this is a test 2",
+    "admin": 2,
+    "members": [
+      2,
+      4
+    ]
+  }
+}
+]
