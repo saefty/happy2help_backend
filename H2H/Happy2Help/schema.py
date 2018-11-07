@@ -160,6 +160,37 @@ class CreateUser(graphene.Mutation):
         return CreateUser(user=user, profile=profile)
 
 
+class UpdateUser(graphene.Mutation):
+    user = graphene.Field(UserType)
+
+    class Arguments:
+        birthday = graphene.types.datetime.Date()
+        email = graphene.String()
+        # gps_coordinates
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        user = info.context.user
+        if kwargs.get('birthday', None):
+            user.profile.birthday = kwargs.get('birthday', None)
+        if kwargs.get('email', None):
+            user.email = kwargs.get('email', None)
+        user.profile.save()
+        user.save()
+
+        return UpdateUser(user=user)
+
+
+class DeleteUser(graphene.Mutation):
+    user = graphene.Field(UserType)
+
+    @login_required
+    def mutate(self, info):
+        user = info.context.user
+        user.delete()
+        return DeleteUser(user)
+
+
 class CreateParticipation(graphene.Mutation):
     participation = graphene.Field(ParticipationType)
 
@@ -228,37 +259,6 @@ class UpdateParticipation(graphene.Mutation):
         participation.state = state
         participation.save()
         return UpdateParticipation(participation=participation)
-
-
-class UpdateUser(graphene.Mutation):
-    user = graphene.Field(UserType)
-
-    class Arguments:
-        birthday = graphene.types.datetime.Date()
-        email = graphene.String()
-        # gps_coordinates
-
-    @login_required
-    def mutate(self, info, **kwargs):
-        user = info.context.user
-        if kwargs.get('birthday', None):
-            user.profile.birthday = kwargs.get('birthday', None)
-        if kwargs.get('email', None):
-            user.email = kwargs.get('email', None)
-        user.profile.save()
-        user.save()
-
-        return UpdateUser(user=user)
-
-
-class DeleteUser(graphene.Mutation):
-    user = graphene.Field(UserType)
-
-    @login_required
-    def mutate(self, info):
-        user = info.context.user
-        user.delete()
-        return DeleteUser(user)
 
 
 class CreateJob(graphene.Mutation):
@@ -427,13 +427,97 @@ class DeleteOrganisation(graphene.Mutation):
         return DeleteOrganisation(organisation)
 
 
+class CreateEvent(graphene.Mutation):
+    event = graphene.Field(EventType)
+
+    class Arguments:
+        name = graphene.String(required=True)
+        description = graphene.String(required=True)
+        org_id = graphene.ID(required=True)
+
+    @login_required
+    def mutate(self, info, name, description, org_id):
+        user = info.context.user
+        try:
+            organisation = user.organisation_set.get(pk=org_id)
+        except Organisation.DoesNotExist:
+            raise Exception("You need to be a member of the organisation to create an event for it")
+
+        event = Event(
+            name=name,
+            description=description,
+            organisation=organisation,
+            creator=user
+        )
+        event.save()
+
+        # initial default job for the event
+        job = Job(
+            name=name,
+            description=description,
+            event=event
+        )
+        job.save()
+
+        return CreateEvent(event=event)
+
+
+class UpdateEvent(graphene.Mutation):
+    event = graphene.Field(EventType)
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        name = graphene.String()
+        description = graphene.String()
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        user = info.context.user
+        event = Event.objects.get(pk=kwargs.get('id'))
+        organisation = event.organisation
+
+        try:
+            user.organisation_set.get(pk=organisation.id)
+        except Organisation.DoesNotExist:
+            raise Exception("You need to be a member of the organisation to update this event")
+
+        if kwargs.get('name', None):
+            event.name = kwargs.get('name', None)
+        if kwargs.get('description', None):
+            event.description = kwargs.get('description', None)
+        event.save()
+
+        return UpdateEvent(event=event)
+
+
+class DeleteEvent(graphene.Mutation):
+    event = graphene.Field(EventType)
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    @login_required
+    def mutate(self, info, id):
+        user = info.context.user
+        event = Event.objects.get(pk=id)
+        organisation = event.organisation
+
+        try:
+            user.organisation_set.get(pk=organisation.id)
+        except Organisation.DoesNotExist:
+            raise Exception("You need to be a member of the organisation to delete this event")
+
+        event.delete()
+        return DeleteEvent(event)
+
+
 class Mutation(graphene.AbstractType):
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
     
     create_participation = CreateParticipation.Field()
-    update_participaion = UpdateParticipation.Field()
+    update_participation = UpdateParticipation.Field()
     
     create_job = CreateJob.Field()
     update_job = UpdateJob.Field()
@@ -442,6 +526,10 @@ class Mutation(graphene.AbstractType):
     create_organisation = CreateOrganisation.Field()
     update_organisation = UpdateOrganisation.Field()
     delete_organisation = DeleteOrganisation.Field()
+
+    create_event = CreateEvent.Field()
+    update_event = UpdateEvent.Field()
+    delete_event = DeleteEvent.Field()
 
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
