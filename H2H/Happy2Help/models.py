@@ -14,15 +14,10 @@ class Organisation(models.Model):
         return self.name
 
 
-
-
-
-
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     birthday = models.DateField(blank=True, null=True)
-    creditPoints = models.IntegerField(default=0)
-
+    credit_points = models.IntegerField(default=0)
 
     def __str__(self):
         return str(self.user)
@@ -34,7 +29,6 @@ class Event(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True) # es gibt immer einen creator aber nicht immer eine organisation
     creator = models.ForeignKey(User, on_delete=models.CASCADE) # wird doch gebraucht weil ein user ohne orga auch erstellen kann!
 
-
     def __str__(self):
         return self.name
 
@@ -45,8 +39,7 @@ class Job(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     total_positions = models.IntegerField(default=999)
     open_positions = models.IntegerField(default=999)
-    canceled = models.BooleanField(default=0)
-
+    canceled = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.name) + " at the event " + str(self.event)
@@ -66,7 +59,6 @@ class Rating(models.Model):
 
 
 class Participation(models.Model):
-    #event = models.ForeignKey(Event, on_delete=models.SET_NULL, blank=False, null=True) # partip nicht löschen wenn event gelöscht wird. etwas besseres als NULL wär gut...
     PARTICIPATION_STATES = (
         (1, 'Participated'),
         (2, 'Applied'),
@@ -79,9 +71,6 @@ class Participation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE) # wenn user gelöscht, dann ist particip auch weg
     rating = models.ForeignKey(Rating, on_delete=models.SET_NULL, blank=True, null=True)
     state = models.IntegerField(choices=PARTICIPATION_STATES, default=2)
-
-
-    
 
     def __str__(self):
         return str(self.user) + ' attends ' + str(self.job)

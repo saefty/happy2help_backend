@@ -59,15 +59,6 @@ class ParticipationType(DjangoObjectType):
     class Meta:
         model = Participation
 
-    """
-    def resolve_user(self, info):
-        if info.context.user.id != self.event.creator.id:
-            raise Exception(
-                "You have to be the creator of the event to get the participators")
-        return self.user
-
-    """
-
 
 class RatingType(DjangoObjectType):
     class Meta:
