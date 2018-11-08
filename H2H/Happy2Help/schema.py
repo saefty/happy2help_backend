@@ -56,8 +56,13 @@ class JobType(DjangoObjectType):
 
 
 class ParticipationType(DjangoObjectType):
+    state = graphene.Int()
+
     class Meta:
         model = Participation
+
+    def resolve_state(self, info, **kwargs):
+        return self.state
 
 
 class RatingType(DjangoObjectType):
@@ -68,11 +73,6 @@ class RatingType(DjangoObjectType):
 class FavouriteType(DjangoObjectType):
     class Meta:
         model = Favourite
-
-    def resolve_user(self, info):
-        if info.context.user != self.user:
-            raise Exception("not authorized")
-        return self.user
 
 
 class ReportType(DjangoObjectType):
@@ -99,10 +99,9 @@ class Query(graphene.ObjectType):
     locations = graphene.List(LocationType)
 
     def resolve_user(self, info):
-        me = info.context.user
-        if me.is_anonymous:
+        if info.context.user.is_anonymous:
             raise Exception('Not logged!')
-        return me
+        return info.context.user
 
     def resolve_all_users(self, info):
         return User.objects.all()
@@ -125,7 +124,7 @@ class Query(graphene.ObjectType):
     def resolve_ratings(self, info, id):
         return Rating.objects.all()
 
-    def resolve_favourites(self, info, id):
+    def resolve_favourites(self, info):
         return Favourite.objects.all()
 
     def resolve_reports(self, info, id):
@@ -207,7 +206,7 @@ class CreateParticipation(graphene.Mutation):
                                         job=job):  # avoids multiple participations from a user to the same job
             raise Exception("User already applied")
 
-        if job.canceled == True:  # can not apply to a canceled job
+        if job.canceled:  # can not apply to a canceled job
             raise Exception("Job is canceled/inactive")
 
         participation = Participation(
