@@ -21,7 +21,7 @@ from .models import (
 class ProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
-    fields = ('birthday','location', 'credit_points')
+    fields = ('birthday', 'location', 'credit_points')
     verbose_name_plural = 'profiles'
 
 
@@ -90,6 +90,7 @@ class LocationAdmin(admin.ModelAdmin):
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     pass
+
 
 # Re-register UserAdmin
 admin.site.unregister(User)

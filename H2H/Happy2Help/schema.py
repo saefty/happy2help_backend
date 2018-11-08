@@ -10,7 +10,7 @@ class UserType(DjangoObjectType):
     class Meta:
         model = User
 
-    #restricted Fields:
+    # restricted Fields:
     def resolve_organisation_set(self, info):
         return field_restrictor(self, info, self.organisation_set)
 
@@ -79,6 +79,7 @@ class ReportType(DjangoObjectType):
     class Meta:
         model = Report
 
+
 class LocationType(DjangoObjectType):
     class Meta:
         model = Location
@@ -133,6 +134,7 @@ class Query(graphene.ObjectType):
     def resolve_locations(self, info):
         return Location.objects.all()
 
+
 # Mutations
 class CreateUser(graphene.Mutation):
     user = graphene.Field(UserType)
@@ -145,7 +147,7 @@ class CreateUser(graphene.Mutation):
         birthday = graphene.types.datetime.Date()
         location = graphene.String()
 
-    def mutate(self, info, username, password, email, **kwargs):
+    def mutate(info, username, password, email, **kwargs):
         user = User(username=username, email=email)
         user.set_password(password)
         user.save()
@@ -201,10 +203,11 @@ class CreateParticipation(graphene.Mutation):
         user = info.context.user
         job = Job.objects.filter(pk=job_id).first()
 
-        if Participation.objects.filter(user=user, job=job): #avoids multiple participations from a user to the same job
+        if Participation.objects.filter(user=user,
+                                        job=job):  # avoids multiple participations from a user to the same job
             raise Exception("User already applied")
-        
-        if job.canceled == True: #can not apply to a canceled job
+
+        if job.canceled == True:  # can not apply to a canceled job
             raise Exception("Job is canceled/inactive")
 
         participation = Participation(
@@ -232,7 +235,7 @@ class UpdateParticipation(graphene.Mutation):
         event_creator = participation.job.event.creator
         job = participation.job
 
-        if job.canceled == True: #it is not possible to change the state of a canceled/inactive job
+        if job.canceled == True:  # it is not possible to change the state of a canceled/inactive job
             raise Exception("Job is canceled/inactive")
 
         if state == 5:  # 5=canceled
@@ -308,19 +311,20 @@ class UpdateJob(graphene.Mutation):
             raise Exception("You need to be the event creator to create a job")
 
         if kwargs.get('name', None):
-            if Job.objects.filter(name=kwargs.get('name'), event=event).exists(): #no jobs with the same name at the same event
+            if Job.objects.filter(name=kwargs.get('name'),
+                                  event=event).exists():  # no jobs with the same name at the same event
                 raise Exception("This Job already exists")
             job.name = kwargs.get('name')
 
         if kwargs.get('description', None):
             job.description = kwargs.get('description')
 
-        if kwargs.get('total_positions', None): 
+        if kwargs.get('total_positions', None):
             total_positions = kwargs.get('total_positions')
-            if -total_positions + job.total_positions > job.total_positions: #make sure not more users are accepted than possible
+            if -total_positions + job.total_positions > job.total_positions:  # make sure not more users are accepted than possible
                 raise Exception(
                     "already accepted too many users, decline some users")
-            job.open_positions = total_positions - job.total_positions + job.open_positions #keeping open position up to date
+            job.open_positions = total_positions - job.total_positions + job.open_positions  # keeping open position up to date
             job.total_positions = total_positions
 
         job.save()
@@ -342,10 +346,10 @@ class DeleteJob(graphene.Mutation):
         if event.creator != user:
             raise Exception("You need to be the event creator to delete a job")
 
-        if not Participation.objects.filter(job=job).exists(): # if there are no participations
-            job.delete() # the job gets deleted in the db immediately
+        if not Participation.objects.filter(job=job).exists():  # if there are no participations
+            job.delete()  # the job gets deleted in the db immediately
             return DeleteJob(job=job)
-        
+
         # if there are already participations the job is marked as canceled but not deleted
         job.canceled = True
         job.save()
@@ -502,10 +506,10 @@ class Mutation(graphene.AbstractType):
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
-    
+
     create_participation = CreateParticipation.Field()
     update_participation = UpdateParticipation.Field()
-    
+
     create_job = CreateJob.Field()
     update_job = UpdateJob.Field()
     delete_job = DeleteJob.Field()

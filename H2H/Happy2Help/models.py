@@ -2,7 +2,6 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-# Create your models here.
 
 
 class Organisation(models.Model):
@@ -16,10 +15,10 @@ class Organisation(models.Model):
 
 
 class Location(models.Model):
-    longitude = models.DecimalField(max_digits=9, decimal_places=6) 
-    latitude = models.DecimalField(max_digits=9, decimal_places=6) 
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
     name = models.CharField(max_length=200)
-    
+
     def __str__(self):
         return self.name
 
@@ -28,7 +27,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     birthday = models.DateField(blank=True, null=True)
     credit_points = models.IntegerField(default=0)
-    location = models.OneToOneField(Location, on_delete=models.CASCADE , blank=True, null=True)
+    location = models.OneToOneField(Location, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return str(self.user)
@@ -55,7 +54,7 @@ class Event(models.Model):
     description = models.TextField()
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
-    location = models.OneToOneField(Location, on_delete=models.CASCADE , null=True)
+    location = models.OneToOneField(Location, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.name
@@ -75,10 +74,12 @@ class Job(models.Model):
 
 class Rating(models.Model):
     user_a = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='rating_from_user')
-    orga_a = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True, related_name='rating_from_orga')
+    orga_a = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True,
+                               related_name='rating_from_orga')
 
     user_b = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='rating_to_user')
-    orga_b = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True, related_name='rating_to_orga')
+    orga_b = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True,
+                               related_name='rating_to_orga')
 
     rating = models.FloatField(default=0.0)
 
@@ -121,10 +122,12 @@ class Report(models.Model):
     )
 
     user_a = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='report_from_user')
-    orga_a = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True, related_name='report_from_orga')
+    orga_a = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True,
+                               related_name='report_from_orga')
 
     user_b = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='report_to_user')
-    orga_b = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True, related_name='report_to_orga')
+    orga_b = models.ForeignKey(Organisation, on_delete=models.CASCADE, blank=True, null=True,
+                               related_name='report_to_orga')
 
     text = models.TextField()
     reason = models.CharField(max_length=2, choices=REASON_CHOICES, default='--')
@@ -133,12 +136,13 @@ class Report(models.Model):
         return self.reason
 
 
-#delete functions:
+# delete functions:
 
 @receiver(post_delete, sender=Profile)
 def post_delete_location_for_profile(sender, instance, *args, **kwargs):
     if instance.location:
         instance.location.delete()
+
 
 @receiver(post_delete, sender=Event)
 def post_delete_location_for_event(sender, instance, *args, **kwargs):
