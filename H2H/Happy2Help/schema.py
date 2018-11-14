@@ -2,13 +2,28 @@ import graphene
 import graphql_jwt
 from django.contrib.auth.models import User
 from graphene_django import DjangoObjectType
-from .models import Favourite, Rating, Participation, Event, Organisation, Report, Job, Profile, Location
+from .models import Favourite, Rating, Participation, Event, Organisation, Report, Job, Profile, Location, Skill, \
+    HasSkill
 from graphql_jwt.decorators import login_required
 
 
+class SkillType(DjangoObjectType):
+    class Meta:
+        model = Skill
+
+
+class HasSkillType(DjangoObjectType):
+    class Meta:
+        model = HasSkill
+
+
 class UserType(DjangoObjectType):
+
+    skills = graphene.List(SkillType)
+
     class Meta:
         model = User
+        exclude_fields = ('hasskill_set',)
 
     # restricted Fields:
     def resolve_organisation_set(self, info):
@@ -25,6 +40,10 @@ class UserType(DjangoObjectType):
 
     def resolve_favourite_set(self, info):
         return field_restrictor(self, info, self.favourite_set)
+
+    def resolve_skills(self, info):
+        skills = [s.skill for s in HasSkill.objects.filter(user=self)]
+        return field_restrictor(self, info, skills)
 
 
 @login_required
@@ -97,6 +116,8 @@ class Query(graphene.ObjectType):
     favourites = graphene.List(FavouriteType)
     reports = graphene.List(ReportType)
     locations = graphene.List(LocationType)
+    skills = graphene.List(SkillType)
+    has_skill = graphene.List(HasSkillType)
 
     def resolve_user(self, info):
         if info.context.user.is_anonymous:
@@ -132,6 +153,12 @@ class Query(graphene.ObjectType):
 
     def resolve_locations(self, info):
         return Location.objects.all()
+
+    def resolve_skills(self, info):
+        return Skill.objects.all()
+
+    def resolve_has_skill(self, info):
+        return HasSkill.objects.all()
 
 
 # Mutations
