@@ -1,8 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-# Create your models here.
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 
@@ -43,3 +42,9 @@ class Favourite(models.Model):
 def post_delete_location_for_profile(sender, instance, *args, **kwargs):
     if instance.location:
         instance.location.delete()
+
+
+@receiver(post_save, sender=User)
+def create_profile_on_user_create(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
