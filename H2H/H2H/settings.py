@@ -32,8 +32,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'Happy2Help',
     'graphene_django',
+    'User',
+    'Organisation',
+    'Event',
+    'Location',
+    'Feedback',
 ]
 
 GRAPHENE = {
