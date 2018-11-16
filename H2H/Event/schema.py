@@ -2,10 +2,12 @@ import graphene
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 
+from Location.models import Location
 from .models import Event, Job, Participation
 from Organisation.models import Organisation
 
 
+# Types
 class EventType(DjangoObjectType):
     class Meta:
         model = Event
@@ -26,6 +28,7 @@ class ParticipationType(DjangoObjectType):
         return self.state
 
 
+# create Participation
 class CreateParticipation(graphene.Mutation):
     participation = graphene.Field(ParticipationType)
 
@@ -35,21 +38,15 @@ class CreateParticipation(graphene.Mutation):
     @login_required
     def mutate(self, info, job_id):
         user = info.context.user
-        job = Job.objects.filter(pk=job_id).first()
+        job = Job.objects.get(id=job_id)
 
-        if Participation.objects.filter(user=user,
-                                        job=job):  # avoids multiple participations from a user to the same job
+        if Participation.objects.filter(user=user, job=job).exists():
             raise Exception("User already applied")
 
         if job.canceled:  # can not apply to a canceled job
             raise Exception("Job is canceled/inactive")
 
-        participation = Participation(
-            job=job,
-            user=user,
-            state=2
-        )
-        participation.save()
+        participation = Participation.objects.create(user=user, job=job, state=2)
 
         return CreateParticipation(participation=participation)
 
@@ -64,20 +61,16 @@ class UpdateParticipation(graphene.Mutation):
     @login_required
     def mutate(self, info, state, participation_id):
         user = info.context.user
-        participation = Participation.objects.get(
-            pk=participation_id)
-        event_creator = participation.job.event.creator
+        participation = Participation.objects.get(id=participation_id)
         job = participation.job
+        event_creator = job.event.creator
 
-        if job.canceled == True:  # it is not possible to change the state of a canceled/inactive job
+        if job.canceled:  # it is not possible to change the state of a canceled/inactive job
             raise Exception("Job is canceled/inactive")
 
-        if state == 5:  # 5=canceled
+        if state == 5:  # 5 = canceled
             if user != participation.user:
                 raise Exception("You need to be the participator")
-            if participation.state == 4:  # case user cancels after he was accepted, 4=accepted
-                job.open_positions = job.open_positions + 1
-                job.save()
             participation.state = state
             participation.save()
             return UpdateParticipation(participation=participation)
@@ -85,16 +78,12 @@ class UpdateParticipation(graphene.Mutation):
         if event_creator != user:
             raise Exception("You need to be the event creator")
 
-        if state == 4 and participation.state != 4:  # case event creator accepts user, 4=accepted
-            job.open_positions = job.open_positions - 1
-            job.save()
-        # case event creator declines user after he accepted him
-        elif state == 3 and participation.state == 4:  # 3=declined, 4=accepted
-            job.open_positions = job.open_positions + 1
-            job.save()
-        participation.state = state
-        participation.save()
-        return UpdateParticipation(participation=participation)
+        if state in (3, 4):  # 3 = declined, 4 = accepted
+            participation.state = state
+            participation.save()
+            return UpdateParticipation(participation=participation)
+
+        raise Exception("State change not allowed")
 
 
 class CreateJob(graphene.Mutation):
@@ -107,22 +96,21 @@ class CreateJob(graphene.Mutation):
         total_positions = graphene.Int(required=True)
 
     @login_required
-    def mutate(self, info, **kwargs):
+    def mutate(self, info, event_id, name, description, total_positions):
         user = info.context.user
-        event = Event.objects.get(pk=kwargs.get('event_id'))
+        event = Event.objects.get(id=event_id)
 
         if event.creator != user:
             raise Exception("You need to be the event creator to create a job")
-        if Job.objects.filter(name=kwargs.get('name'), event=event):
+        if Job.objects.filter(name=name, event=event).exists():
             raise Exception("This Job already exists")
 
-        job = Job(
-            name=kwargs.get('name'),
-            description=kwargs.get('description', None),
+        job = Job.objects.create(
+            name=name,
+            description=description,
             event=event,
-            total_positions=kwargs.get('total_positions')
+            total_positions=total_positions
         )
-        job.save()
         return CreateJob(job=job)
 
 
@@ -130,35 +118,32 @@ class UpdateJob(graphene.Mutation):
     job = graphene.Field(JobType)
 
     class Arguments:
-        id = graphene.ID(required=True)
+        job_id = graphene.ID(required=True)
         name = graphene.String()
         description = graphene.String()
         total_positions = graphene.Int()
 
     @login_required
-    def mutate(self, info, **kwargs):
+    def mutate(self, info, job_id, **kwargs):
         user = info.context.user
-        job = Job.objects.get(pk=kwargs.get('id'))
+        job = Job.objects.get(id=job_id)
         event = job.event
 
         if event.creator != user:
-            raise Exception("You need to be the event creator to create a job")
+            raise Exception("You need to be the event creator to update a job")
 
-        if kwargs.get('name', None):
-            if Job.objects.filter(name=kwargs.get('name'),
-                                  event=event).exists():  # no jobs with the same name at the same event
-                raise Exception("This Job already exists")
-            job.name = kwargs.get('name')
+        name = kwargs.get('name', None)
+        description = kwargs.get('description', None)
+        total_positions = kwargs.get('total_positions', None)
 
-        if kwargs.get('description', None):
-            job.description = kwargs.get('description')
-
-        if kwargs.get('total_positions', None):
-            total_positions = kwargs.get('total_positions')
-            if -total_positions + job.total_positions > job.total_positions:  # make sure not more users are accepted than possible
-                raise Exception(
-                    "already accepted too many users, decline some users")
-            job.open_positions = total_positions - job.total_positions + job.open_positions  # keeping open position up to date
+        if name:
+            job.name = name
+        if description:
+            job.description = description
+        if total_positions:
+            occupied_positions = job.occupied_positions()
+            if total_positions < occupied_positions:
+                raise Exception(f"Total positions cannot be less than occupied positions({occupied_positions})")
             job.total_positions = total_positions
 
         job.save()
@@ -166,49 +151,64 @@ class UpdateJob(graphene.Mutation):
 
 
 class DeleteJob(graphene.Mutation):
+    """
+    Deletes a job if it is not the last job for an event
+    if a job gets deleted, participations with a state of accepted or applied
+    will get cancelled (job delete signal).
+    """
     job = graphene.Field(JobType)
 
     class Arguments:
-        id = graphene.ID(required=True)
+        job_id = graphene.ID(required=True)
 
     @login_required
-    def mutate(self, info, **kwargs):
+    def mutate(self, info, job_id):
         user = info.context.user
-        job = Job.objects.get(pk=kwargs.get('id'))
+        job = Job.objects.get(id=job_id)
         event = job.event
 
         if event.creator != user:
             raise Exception("You need to be the event creator to delete a job")
 
-        if not Participation.objects.filter(job=job).exists():  # if there are no participations
-            job.delete()  # the job gets deleted in the db immediately
-            return DeleteJob(job=job)
+        if event.job_set.count() == 1:  # if its the last job
+            raise Exception("Cannot delete last job of event. Events need to have at least one job")
 
-        # if there are already participations the job is marked as canceled but not deleted
-        job.canceled = True
-        job.save()
+        job.delete()
         return DeleteJob(job=job)
 
 
 class CreateEvent(graphene.Mutation):
+    """
+    Creates an event. Organisation is optional.
+    If no organisation is given, the creator has to pay credits.
+    """
     event = graphene.Field(EventType)
 
     class Arguments:
-        id = graphene.ID(required=True)
+        organisation_id = graphene.ID()
         name = graphene.String(required=True)
         description = graphene.String(required=True)
+        location_id = graphene.ID(required=True)
 
     @login_required
-    def mutate(self, info, name, description, id):
+    def mutate(self, info, name, description, location_id, **kwargs):
         user = info.context.user
-        try:
-            organisation = user.organisation_set.get(pk=id)
-        except Organisation.DoesNotExist:
-            raise Exception("You need to be a member of the organisation to create an event for it")
+        location = Location.objects.get(id=location_id)
 
-        event = Event.objects.create(name=name, description=description, organisation=organisation, creator=user)
-        # initial default job for the event
-        job = Job.objects.create(name=name, description=description, event=event)
+        organisation_id = kwargs.get('organisation_id', None)
+        organisation = None
+        if organisation_id:
+            organisation = Organisation.objects.get(id=organisation_id)
+        else:
+            user.profile.credit_points -= 10
+
+        event = Event.objects.create(
+            name=name,
+            description=description,
+            creator=user,
+            location=location,
+            organisation=organisation  # will be set to NULL if organisation = None
+        )
 
         return CreateEvent(event=event)
 
@@ -217,25 +217,28 @@ class UpdateEvent(graphene.Mutation):
     event = graphene.Field(EventType)
 
     class Arguments:
-        id = graphene.ID(required=True)
+        event_id = graphene.ID(required=True)
         name = graphene.String()
         description = graphene.String()
 
     @login_required
-    def mutate(self, info, **kwargs):
+    def mutate(self, info, event_id, **kwargs):
         user = info.context.user
-        event = Event.objects.get(pk=kwargs.get('id'))
+        event = Event.objects.get(id=event_id)
         organisation = event.organisation
 
-        try:
-            user.organisation_set.get(pk=organisation.id)
-        except Organisation.DoesNotExist:
-            raise Exception("You need to be a member of the organisation to update this event")
+        if not organisation:
+            if user != event.creator:
+                raise Exception("You need to be the event creator to update the event")
+
+        if user not in organisation.members:
+            raise Exception(f"You need to be a member of {organisation.name} to update the event")
 
         if kwargs.get('name', None):
-            event.name = kwargs.get('name', None)
+            event.name = kwargs['name']
         if kwargs.get('description', None):
-            event.description = kwargs.get('description', None)
+            event.description = kwargs['description']
+
         event.save()
 
         return UpdateEvent(event=event)
@@ -245,19 +248,19 @@ class DeleteEvent(graphene.Mutation):
     event = graphene.Field(EventType)
 
     class Arguments:
-        id = graphene.ID(required=True)
+        event_id = graphene.ID(required=True)
 
     @login_required
-    def mutate(self, info, id):
+    def mutate(self, info, event_id):
         user = info.context.user
-        event = Event.objects.get(pk=id)
+        event = Event.objects.get(id=event_id)
         organisation = event.organisation
 
-        try:
-            user.organisation_set.get(pk=organisation.id)
-        except Organisation.DoesNotExist:
-            raise Exception("You need to be a member of the organisation to delete this event")
+        if not organisation and user != event.creator:
+            raise Exception("You need to be the event creator to delete the event")
 
+        if user not in organisation.members:
+            raise Exception(f"You need to be a member of {organisation.name} to delete the event")
         event.delete()
         return DeleteEvent(event)
 
@@ -272,10 +275,10 @@ class Query(graphene.ObjectType):
         return Event.objects.all()
 
     def resolve_jobs(self, info):
-        return Job.objects.all()
+        return [p.job for p in Participation.objects.filter(user=info.context.user)]
 
     def resolve_participations(self, info):
-        return Participation.objects.all()
+        return Participation.objects.filter(user=info.context.user)
 
 
 # Mutations
@@ -287,3 +290,6 @@ class Mutation(graphene.AbstractType):
     create_event = CreateEvent.Field()
     update_event = UpdateEvent.Field()
     delete_event = DeleteEvent.Field()
+
+    create_participation = CreateParticipation.Field()
+    update_participation = UpdateParticipation.Field()

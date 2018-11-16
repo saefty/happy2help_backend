@@ -72,6 +72,7 @@ class UpdateUser(graphene.Mutation):
         email = graphene.String()
         birthday = graphene.types.datetime.Date()
 
+    @login_required
     def mutate(self, info, **kwargs):
         user = info.context.user
         # users old email if email=""
@@ -87,6 +88,7 @@ class DeleteUser(graphene.Mutation):
     """Profile will be deleted automatically (CASCADE)"""
     user = graphene.Field(UserType)
 
+    @login_required
     def mutate(self, info):
         user = info.context.user
         user.delete()
@@ -95,11 +97,13 @@ class DeleteUser(graphene.Mutation):
 
 # create skill
 class CreateSkill(graphene.Mutation):
+    # TODO: make it impossible to create multiple hasskills
     skill = graphene.Field(SkillType)
 
     class Arguments:
         name = graphene.String()
 
+    @login_required
     def mutate(self, info, name):
         skill, created = Skill.objects.get_or_create(name=name)
         HasSkill.objects.create(user=info.context.user, skill=skill)
@@ -114,6 +118,7 @@ class DeleteSkill(graphene.Mutation):
     class Arguments:
         name = graphene.String()
 
+    @login_required
     def mutate(self, info, name):
         skill = Skill.objects.get(name=name)
         has_skill = HasSkill.objects.get(user=info.context.user, skill=skill)
@@ -128,6 +133,7 @@ class CreateFavourite(graphene.Mutation):
     class Arguments:
         event_id = graphene.ID()
 
+    @login_required
     def mutate(self, info, event_id):
         event = Event.objects.get(id=event_id)
         Favourite.objects.create(user=info.context.user, event=event)
