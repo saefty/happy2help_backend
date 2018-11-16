@@ -25,6 +25,9 @@ class UserType(DjangoObjectType):
         exclude_fields = ('hasskill_set',)
 
     # restricted Fields:
+    def resolve_password(self, info):
+        return field_restrictor(self, info, self.password)
+
     def resolve_organisation_set(self, info):
         return field_restrictor(self, info, self.organisation_set)
 
