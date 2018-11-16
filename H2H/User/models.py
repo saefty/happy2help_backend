@@ -42,6 +42,6 @@ class Favourite(models.Model):
 
 
 @receiver(post_save, sender=User)
-def create_profile_on_user_create(sender, user, created, **kwargs):
+def create_profile_on_user_create(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.create(user=user)
+        Profile.objects.create(user=instance)
