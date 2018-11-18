@@ -1,45 +1,146 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 # Create your tests here.
 from graphql_jwt.testcases import JSONWebTokenTestCase
 
-from User.models import Skill, HasSkill
+from User.models import Skill, HasSkill, Profile
 
 
+# TODO: alles in graphql umschreiben...
 class UsersTests(JSONWebTokenTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create(username='tOor', password='testtest')
 
     def setUp(self):
-        # self.user = get_user_model().objects.create(username='tOor', password='testtest')
-        query = """mutation{createUser(username:"tOor" password:"testtest" email:"toor@gmail.com"){user{username}}}"""
-        result = self.client.execute(query)
-        self.user = get_user_model().objects.get(username="tOor")
         self.client.authenticate(self.user)
 
-    def test_get_user(self):
-        query = """query{user{username}}"""
-        result = self.client.execute(query)
-
-        self.assertTrue(result.data["user"]["username"] == 'tOor')
+    def test_profile_is_created(self):
+        self.assertIsInstance(self.user.profile, Profile)
 
     def test_edit_birthday(self):
-        query = """mutation{updateUser(birthday:"1986-11-20"){user{profile{birthday}}}}"""
-        result = self.client.execute(query)
+        self.client.execute(
+            """
+            mutation {
+              updateUser(birthday:"1986-11-20"){
+                user {
+                  profile {
+                    birthday
+                  }
+                }
+              }
+            }
+            """
+        )
 
-        self.assertTrue(result.data["updateUser"]["user"]["profile"]["birthday"] == '1986-11-20')
+        resp = self.client.execute("query{user{profile{birthday}}}")
+        self.assertEqual(resp.data['user']['profile']['birthday'], '1986-11-20')
 
-    def test_add_skill(self):
-        query = """mutation{createSkill(name:"Flechten"){skill{name}}}"""
-        result = self.client.execute(query)
+    def test_invalid_birthday(self):
+        resp = self.client.execute(
+            """
+            mutation {
+              updateUser(birthday:1){
+                user {
+                  profile {
+                    birthday
+                  }
+                }
+              }
+            }
+            """
+        )
+        self.assertTrue(resp.errors)
 
-        self.assertTrue(result.data["createSkill"]["skill"]["name"] == "Flechten")
+    def test_credit_points_are_zero(self):
+        resp = self.client.execute(
+            """
+            query {
+              user {
+                profile {
+                  creditPoints
+                }
+              }
+            }
+            """
+        )
+        self.assertEqual(resp.data['user']['profile']['creditPoints'], 0)
+
+    def test_increase_credit_points(self):
+        resp = self.client.execute(
+            """
+            mutation {
+              updateUser(creditPoints:10){
+                user {
+                  profile {
+                    creditPoints
+                  }
+                }
+              }
+            }
+            """
+        )
+
+        self.assertEqual(resp.data['updateUser']['user']['profile']['creditPoints'], 10)
+
+    def test_negative_credit_points(self):
+        pass
+        # TODO: SQLite does not validate PositiveIntegerField.
+        # with self.assertRaises(AssertionError):
+        #     self.user.profile.credit_points -= 10
+        #     self.user.profile.save()
+
+    def test_create_skill(self):
+        resp = self.client.execute(
+            """
+            mutation {
+              createSkill(name:"Flechten") {
+                    skill {
+                  name
+                }
+              }
+            }
+            """
+        )
+
+        self.assertTrue(resp.data['createSkill']['skill']['name'] == 'Flechten')
+
+        # HasSkill should also be created and user.skills should have an entry
+        resp = self.client.execute(
+            """
+            query {
+              user {
+                skills {
+                  name
+                }
+              }
+            }
+            """
+        )
+        self.assertTrue('Flechten' in [s['name'] for s in resp.data['user']['skills']])
 
     def test_delete_skill(self):
-        query = """mutation{createSkill(name:"Flechten"){skill{name}}}"""
-        self.client.execute(query)
-        query = """mutation{deleteSkill(name:"Flechten"){skill{name}}}"""
-        result = self.client.execute(query)
 
-        self.assertTrue(result.data["deleteSkill"]["skill"]["name"] == "Flechten")
-        self.assertTrue(Skill.objects.filter(name="Flechten").exists)
-        self.assertFalse(HasSkill.objects.filter(user=self.user, skill=Skill.objects.get(name="Flechten")).exists())
+        # create Skill and HasSkill first
+        skill = Skill.objects.create(name="Hobeln")
+        hasskill = HasSkill.objects.create(user=self.user, skill=skill)
+
+        resp = self.client.execute(
+            """
+            mutation {
+              deleteSkill(name:"Hobeln") {
+                skill {
+                  name
+                }
+              }
+            }
+            """
+        )
+
+        self.assertTrue(resp.data['deleteSkill']['skill']['name'] == 'Hobeln')
+
+        # Skill should not have been deleted. Only the HasSkill
+        self.assertTrue(Skill.objects.filter(name="Hobeln").exists())
+        self.assertFalse(HasSkill.objects.filter(user=self.user).exists())

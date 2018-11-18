@@ -71,6 +71,7 @@ class UpdateUser(graphene.Mutation):
     class Arguments:
         email = graphene.String()
         birthday = graphene.types.datetime.Date()
+        credit_points = graphene.Int()
 
     @login_required
     def mutate(self, info, **kwargs):
@@ -78,6 +79,7 @@ class UpdateUser(graphene.Mutation):
         # users old email if email=""
         user.email = user.email if not kwargs.get('email', None) else kwargs["email"]
         user.profile.birthday = kwargs.get('birthday', user.profile.birthday)
+        user.profile.credit_points = kwargs.get('credit_points', user.profile.credit_points)
         user.save()
         user.profile.save()
         return UpdateUser(user=user)
