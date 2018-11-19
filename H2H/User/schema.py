@@ -118,11 +118,11 @@ class DeleteSkill(graphene.Mutation):
     skill = graphene.Field(SkillType)
 
     class Arguments:
-        name = graphene.String()
+        skill_id = graphene.ID()
 
     @login_required
-    def mutate(self, info, name):
-        skill = Skill.objects.get(name=name)
+    def mutate(self, info, skill_id):
+        skill = Skill.objects.get(id=skill_id)
         has_skill = HasSkill.objects.get(user=info.context.user, skill=skill)
         has_skill.delete()
         return DeleteSkill(skill=skill)
