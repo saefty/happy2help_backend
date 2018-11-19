@@ -1,14 +1,10 @@
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
-from django.test import TestCase
 
-# Create your tests here.
 from graphql_jwt.testcases import JSONWebTokenTestCase
 
 from User.models import Skill, HasSkill, Profile
 
 
-# TODO: alles in graphql umschreiben...
 class UsersTests(JSONWebTokenTestCase):
     @classmethod
     def setUpTestData(cls):
@@ -130,7 +126,7 @@ class UsersTests(JSONWebTokenTestCase):
         resp = self.client.execute(
             """
             mutation {
-              deleteSkill(name:"Hobeln") {
+              deleteSkill(skillId:1) {
                 skill {
                   name
                 }
