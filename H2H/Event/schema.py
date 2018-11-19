@@ -201,6 +201,7 @@ class CreateEvent(graphene.Mutation):
             organisation = Organisation.objects.get(id=organisation_id)
         else:
             user.profile.credit_points -= 10
+            user.profile.save()
 
         event = Event.objects.create(
             name=name,
