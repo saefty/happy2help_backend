@@ -283,6 +283,9 @@ class Query(graphene.ObjectType):
 
 # Mutations
 class Mutation(graphene.AbstractType):
+    create_participation = CreateParticipation.Field()
+    update_participation = UpdateParticipation.Field()
+
     create_job = CreateJob.Field()
     update_job = UpdateJob.Field()
     delete_job = DeleteJob.Field()
