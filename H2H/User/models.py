@@ -1,15 +1,14 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-# Create your models here.
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     birthday = models.DateField(blank=True, null=True)
-    credit_points = models.IntegerField(default=0)
+    credit_points = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return str(self.user)
@@ -27,6 +26,9 @@ class HasSkill(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     approved = models.BooleanField(default=False)
 
+    class Meta:
+        unique_together = ('skill', 'user')
+
     def __str__(self):
         return str(self.user) + ' has skill: ' + str(self.skill)
 
@@ -39,7 +41,7 @@ class Favourite(models.Model):
         return str(self.user) + ' likes ' + str(self.event)
 
 
-@receiver(post_delete, sender=Profile)
-def post_delete_location_for_profile(sender, instance, *args, **kwargs):
-    if instance.location:
-        instance.location.delete()
+@receiver(post_save, sender=User)
+def create_profile_on_user_create(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)

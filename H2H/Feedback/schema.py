@@ -13,6 +13,7 @@ class ReportType(DjangoObjectType):
     class Meta:
         model = Report
 
+
 # Queries
 class Query(graphene.ObjectType):
     ratings = graphene.List(RatingType)

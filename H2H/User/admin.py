@@ -10,7 +10,7 @@ from .models import Profile, HasSkill, Skill, Favourite
 class ProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
-    fields = ('birthday', 'location', 'credit_points')
+    fields = ('birthday', 'credit_points')
     verbose_name_plural = 'profiles'
 
 
