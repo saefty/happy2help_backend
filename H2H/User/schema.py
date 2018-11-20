@@ -15,9 +15,14 @@ class FavouriteType(DjangoObjectType):
 
 
 class SkillType(DjangoObjectType):
+    approved = graphene.Boolean()
+
     class Meta:
         model = Skill
         exclude_fields = ('hasskill_set',)
+
+    def resolve_approved(self, info):
+        return HasSkill.objects.get(user=info.context.user, skill=self).approved
 
 
 class HasSkillType(DjangoObjectType):
