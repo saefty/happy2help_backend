@@ -1,11 +1,30 @@
 import graphene
-import Happy2Help.schema
+
+import User.schema
+import Event.schema
+import Organisation.schema
+import Location.schema
+import Feedback.schema
 
 
-class Query(Happy2Help.schema.Query, graphene.ObjectType):
+class Query(
+    User.schema.Query,
+    Event.schema.Query,
+    Organisation.schema.Query,
+    Location.schema.Query,
+    Feedback.schema.Query,
+    graphene.ObjectType
+):
     pass
 
-class Mutation(Happy2Help.schema.Mutation, graphene.ObjectType):
+class Mutation(
+    User.schema.Mutation,
+    Event.schema.Mutation,
+    Organisation.schema.Mutation,
+    Location.schema.Mutation,
+    Feedback.schema.Mutation,
+    graphene.ObjectType
+):
     pass
 
 
