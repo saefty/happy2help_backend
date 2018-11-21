@@ -268,11 +268,29 @@ class DeleteEvent(graphene.Mutation):
 # Queries
 class Query(graphene.ObjectType):
     events = graphene.List(EventType)
+    events_by_coordinates = graphene.List(EventType, ul_longitude=graphene.Float(), ul_latitude=graphene.Float(),
+                                          lr_longitude=graphene.Float(), lr_latitude=graphene.Float())
+
     jobs = graphene.List(JobType)
     participations = graphene.List(ParticipationType)
 
     def resolve_events(self, info):
         return Event.objects.all()
+
+    """
+    Returns all events that are inside the span of the rectangle area made up of two coordinates.
+    ul = upper left
+    lr = lower right
+    """
+    def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):
+        qs = Event.objects.all()
+        res = []
+        for event in qs:
+            l = event.location
+            if (l.longitude >= ul_longitude and l.latitude >= ul_latitude and
+                    l.longitude <= lr_longitude and l.latitude <= lr_latitude):
+                res.append(event)
+        return res
 
     def resolve_jobs(self, info):
         return [p.job for p in Participation.objects.filter(user=info.context.user)]
