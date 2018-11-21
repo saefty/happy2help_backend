@@ -6,6 +6,7 @@ from graphql_jwt.decorators import login_required
 
 from Event.models import Event
 from Event.schema import EventType
+from Location.models import Location
 from .models import Skill, HasSkill, Profile, Favourite
 
 
@@ -56,6 +57,7 @@ class CreateUser(graphene.Mutation):
         password = graphene.String(required=True)
         email = graphene.String(required=True)
         birthday = graphene.types.datetime.Date()
+        location_id = graphene.ID()
 
     def mutate(self, info, username, password, email, **kwargs):
         # save user
@@ -65,6 +67,9 @@ class CreateUser(graphene.Mutation):
 
         # save profile
         user.profile.birthday = kwargs.get('birthday', None)
+        location_id = kwargs.get('location_id', None)
+        if location_id:
+            user.profile.location = Location.objects.get(id=location_id)
         user.profile.save()
 
         return CreateUser(user=user)
@@ -78,6 +83,7 @@ class UpdateUser(graphene.Mutation):
         email = graphene.String()
         birthday = graphene.types.datetime.Date()
         credit_points = graphene.Int()
+        location_id = graphene.Int()
 
     @login_required
     def mutate(self, info, **kwargs):
@@ -86,6 +92,10 @@ class UpdateUser(graphene.Mutation):
         user.email = user.email if not kwargs.get('email', None) else kwargs["email"]
         user.profile.birthday = kwargs.get('birthday', user.profile.birthday)
         user.profile.credit_points = kwargs.get('credit_points', user.profile.credit_points)
+        location_id = kwargs.get('location_id', None)
+        if location_id:
+            location = Location.objects.get(id=location_id)
+            user.profile.location = location
         user.save()
         user.profile.save()
         return UpdateUser(user=user)
