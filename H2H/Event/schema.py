@@ -8,7 +8,6 @@ from .models import Event, Job, Participation
 from Organisation.models import Organisation
 
 
-# Types
 class EventType(DjangoObjectType):
     class Meta:
         model = Event
@@ -29,7 +28,6 @@ class ParticipationType(DjangoObjectType):
         return self.state
 
 
-# create Participation
 class CreateParticipation(graphene.Mutation):
     participation = graphene.Field(ParticipationType)
 
@@ -236,7 +234,7 @@ class UpdateEvent(graphene.Mutation):
         organisation = event.organisation
 
         if not organisation and user != event.creator:
-                raise Exception("You need to be the event creator to update the event")
+            raise Exception("You need to be the event creator to update the event")
 
         if user not in organisation.members.all():
             raise Exception(f"You need to be a member of {organisation.name} to update the event")
@@ -278,14 +276,17 @@ class DeleteEvent(graphene.Mutation):
         return DeleteEvent(event)
 
 
-# Queries
 class Query(graphene.ObjectType):
+    event = graphene.Field(EventType, id=graphene.Int())
     events = graphene.List(EventType)
     events_by_coordinates = graphene.List(EventType, ul_longitude=graphene.Float(), ul_latitude=graphene.Float(),
                                           lr_longitude=graphene.Float(), lr_latitude=graphene.Float())
 
     jobs = graphene.List(JobType)
     participations = graphene.List(ParticipationType)
+
+    def resolve_event(self, info, id):
+        return Event.objects.get(pk=id)
 
     def resolve_events(self, info):
         return Event.objects.filter(end__gt = timezone.now())
@@ -311,7 +312,6 @@ class Query(graphene.ObjectType):
         return Participation.objects.filter(user=info.context.user)
 
 
-# Mutations
 class Mutation(graphene.AbstractType):
     create_participation = CreateParticipation.Field()
     update_participation = UpdateParticipation.Field()
@@ -323,4 +323,3 @@ class Mutation(graphene.AbstractType):
     create_event = CreateEvent.Field()
     update_event = UpdateEvent.Field()
     delete_event = DeleteEvent.Field()
-
