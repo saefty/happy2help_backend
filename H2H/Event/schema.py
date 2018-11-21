@@ -1,6 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
+from django.utils import timezone
 
 from Location.models import Location
 from .models import Event, Job, Participation
@@ -189,6 +190,8 @@ class CreateEvent(graphene.Mutation):
         name = graphene.String(required=True)
         description = graphene.String(required=True)
         location_id = graphene.ID(required=True)
+        start = graphene.DateTime(required=True)
+        end = graphene.DateTime(required=True)
 
     @login_required
     def mutate(self, info, name, description, location_id, **kwargs):
@@ -208,7 +211,9 @@ class CreateEvent(graphene.Mutation):
             description=description,
             creator=user,
             location=location,
-            organisation=organisation  # will be set to NULL if organisation = None
+            organisation=organisation,  # will be set to NULL if organisation = None
+            start=kwargs.get('start'),
+            end=kwargs.get('end')
         )
 
         return CreateEvent(event=event)
@@ -221,6 +226,8 @@ class UpdateEvent(graphene.Mutation):
         event_id = graphene.ID(required=True)
         name = graphene.String()
         description = graphene.String()
+        start = graphene.DateTime()
+        end = graphene.DateTime()
 
     @login_required
     def mutate(self, info, event_id, **kwargs):
@@ -238,6 +245,10 @@ class UpdateEvent(graphene.Mutation):
             event.name = kwargs['name']
         if kwargs.get('description', None):
             event.description = kwargs['description']
+        if kwargs.get('start', None):
+            event.start = kwargs['start']
+        if kwargs.get('end', None):
+            event.end = kwargs['end']
 
         event.save()
 
@@ -277,7 +288,7 @@ class Query(graphene.ObjectType):
     participations = graphene.List(ParticipationType)
 
     def resolve_events(self, info):
-        return Event.objects.all()
+        return Event.objects.filter(end__gt = timezone.now())
 
     def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):
         """
@@ -286,6 +297,7 @@ class Query(graphene.ObjectType):
         lr = lower right
         """
         return Event.objects.filter(
+            end__gt = timezone.now(),
             location__latitude__gte=ul_latitude,
             location__longitude__gte=ul_longitude,
             location__latitude__lte=lr_latitude,
@@ -312,5 +324,3 @@ class Mutation(graphene.AbstractType):
     update_event = UpdateEvent.Field()
     delete_event = DeleteEvent.Field()
 
-    create_participation = CreateParticipation.Field()
-    update_participation = UpdateParticipation.Field()
