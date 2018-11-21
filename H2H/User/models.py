@@ -50,7 +50,7 @@ def create_profile_on_user_create(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance)
 
 
-@receiver(post_delete, sender=User)
-def delete_location_after_delete_user(sender, instance, **kwargs):
-    if instance.profile.location:
-        instance.profile.location.delete()
+@receiver(post_delete, sender=Profile)
+def delete_location_after_delete_profile(sender, instance, **kwargs):
+    if instance.location:
+        instance.location.delete()
