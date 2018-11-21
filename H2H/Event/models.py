@@ -70,7 +70,7 @@ def create_default_job_for_event(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=Job)
 def set_participations_to_cancelled(sender, instance, *args, **kwargs):
-    for participation in instance.participation_set:
+    for participation in instance.participation_set.all():
         if participation.state in (2, 4):
             participation.state = 5
             participation.save()
