@@ -8,6 +8,7 @@ from .models import Location
 class LocationType(DjangoObjectType):
     class Meta:
         model = Location
+        exclude_fields = ('profile', 'event',)
 
 
 class CreateLocation(graphene.Mutation):
