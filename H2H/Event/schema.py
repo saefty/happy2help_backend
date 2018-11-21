@@ -1,6 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
+from django.utils import timezone
 
 from Location.models import Location
 from .models import Event, Job, Participation
@@ -287,7 +288,7 @@ class Query(graphene.ObjectType):
     participations = graphene.List(ParticipationType)
 
     def resolve_events(self, info):
-        return Event.objects.all()
+        return Event.objects.filter(end__gt = timezone.now())
 
     def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):
         """
@@ -296,6 +297,7 @@ class Query(graphene.ObjectType):
         lr = lower right
         """
         return Event.objects.filter(
+            end__gt = timezone.now(),
             location__latitude__gte=ul_latitude,
             location__longitude__gte=ul_longitude,
             location__latitude__lte=lr_latitude,
@@ -322,5 +324,3 @@ class Mutation(graphene.AbstractType):
     update_event = UpdateEvent.Field()
     delete_event = DeleteEvent.Field()
 
-    create_participation = CreateParticipation.Field()
-    update_participation = UpdateParticipation.Field()
