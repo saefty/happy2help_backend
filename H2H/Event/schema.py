@@ -189,6 +189,8 @@ class CreateEvent(graphene.Mutation):
         name = graphene.String(required=True)
         description = graphene.String(required=True)
         location_id = graphene.ID(required=True)
+        start = graphene.DateTime(required=True)
+        end = graphene.DateTime(required=True)
 
     @login_required
     def mutate(self, info, name, description, location_id, **kwargs):
@@ -208,7 +210,9 @@ class CreateEvent(graphene.Mutation):
             description=description,
             creator=user,
             location=location,
-            organisation=organisation  # will be set to NULL if organisation = None
+            organisation=organisation,  # will be set to NULL if organisation = None
+            start=kwargs.get('start'),
+            end=kwargs.get('end')
         )
 
         return CreateEvent(event=event)

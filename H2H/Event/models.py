@@ -4,11 +4,15 @@ from django.db import models
 # Create your models here.
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+from datetime import datetime
 
 
 class Event(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
+    start = models.DateTimeField()
+    end = models.DateTimeField()
+
     organisation = models.ForeignKey('Organisation.Organisation', on_delete=models.CASCADE, blank=True, null=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
     location = models.OneToOneField('Location.Location', on_delete=models.PROTECT, null=True)
