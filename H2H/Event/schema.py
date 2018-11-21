@@ -225,6 +225,8 @@ class UpdateEvent(graphene.Mutation):
         event_id = graphene.ID(required=True)
         name = graphene.String()
         description = graphene.String()
+        start = graphene.DateTime()
+        end = graphene.DateTime()
 
     @login_required
     def mutate(self, info, event_id, **kwargs):
@@ -242,6 +244,10 @@ class UpdateEvent(graphene.Mutation):
             event.name = kwargs['name']
         if kwargs.get('description', None):
             event.description = kwargs['description']
+        if kwargs.get('start', None):
+            event.start = kwargs['start']
+        if kwargs.get('end', None):
+            event.end = kwargs['end']
 
         event.save()
 
