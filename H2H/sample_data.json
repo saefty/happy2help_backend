@@ -1,37 +1,178 @@
 [
-<<<<<<< H2H/sample_data.json
 {
-  "model": "auth.user",
+  "model": "Happy2Help.location",
   "pk": 1,
   "fields": {
-    "password": "pbkdf2_sha256$120000$f9FCEl4PDmqa$mnHDgEEMPlSI2EkhucrBWJ/tiRHPfca3u+nX45tocT4=",
-    "last_login": "2018-10-23T14:18:45.066Z",
+    "longitude": "52.572637",
+    "latitude": "13.358618",
+    "name": "Resi"
+  }
+},
+{
+  "model": "Happy2Help.location",
+  "pk": 2,
+  "fields": {
+    "longitude": "52.564818",
+    "latitude": "13.360860",
+    "name": "Sch\u00e4fersee"
+  }
+},
+{
+  "model": "Happy2Help.location",
+  "pk": 3,
+  "fields": {
+    "longitude": "52.578571",
+    "latitude": "13.298185",
+    "name": "Burger King"
+  }
+},
+{
+  "model": "Happy2Help.skill",
+  "pk": 2,
+  "fields": {
+    "name": "Hobeln"
+  }
+},
+{
+  "model": "Happy2Help.skill",
+  "pk": 3,
+  "fields": {
+    "name": "Schleifen"
+  }
+},
+{
+  "model": "Happy2Help.skill",
+  "pk": 4,
+  "fields": {
+    "name": "Schlauch verlegen"
+  }
+},
+{
+  "model": "Happy2Help.skill",
+  "pk": 5,
+  "fields": {
+    "name": "Loch Bohren"
+  }
+},
+{
+  "model": "Happy2Help.skill",
+  "pk": 6,
+  "fields": {
+    "name": "Staubsaugen"
+  }
+},
+{
+  "model": "Happy2Help.skill",
+  "pk": 7,
+  "fields": {
+    "name": "Brote belegen"
+  }
+},
+{
+  "model": "Happy2Help.skill",
+  "pk": 8,
+  "fields": {
+    "name": "Brote essen"
+  }
+},
+{
+  "model": "Happy2Help.job",
+  "pk": 1,
+  "fields": {
+    "name": "Sandsackschlepper",
+    "description": "Wir brauchen dich als Packesel!",
+    "event": 1,
+    "total_positions": 15,
+    "open_positions": 15,
+    "canceled": false
+  }
+},
+{
+  "model": "Happy2Help.job",
+  "pk": 2,
+  "fields": {
+    "name": "Rettungsbootkapit\u00e4n",
+    "description": "Wir suchen jemanden mit Sportbootf\u00fchrerschein",
+    "event": 1,
+    "total_positions": 1,
+    "open_positions": 1,
+    "canceled": false
+  }
+},
+{
+  "model": "Happy2Help.job",
+  "pk": 3,
+  "fields": {
+    "name": "Rettungsschwimmer",
+    "description": "Wir brauchen dringend drei Rettungsschwimmer!",
+    "event": 1,
+    "total_positions": 3,
+    "open_positions": 3,
+    "canceled": false
+  }
+},
+{
+  "model": "Happy2Help.job",
+  "pk": 4,
+  "fields": {
+    "name": "Schlauchverleger",
+    "description": "Wir brauchen jemanden um den Sch\u00e4fersee wieder voll zu machen.",
+    "event": 2,
+    "total_positions": 1,
+    "open_positions": 1,
+    "canceled": false
+  }
+},
+{
+  "model": "Happy2Help.job",
+  "pk": 5,
+  "fields": {
+    "name": "Regent\u00e4nzer",
+    "description": "Dringend werden 20 Regent\u00e4nzer gesucht",
+    "event": 2,
+    "total_positions": 20,
+    "open_positions": 20,
+    "canceled": false
+  }
+},
+{
+  "model": "Happy2Help.job",
+  "pk": 6,
+  "fields": {
+    "name": "Leute mit Blut",
+    "description": "Das DRK sucht Leute mit Blut. Wir wollen das haben!",
+    "event": 3,
+    "total_positions": 75,
+    "open_positions": 75,
+    "canceled": false
+  }
+},
+{
+  "model": "Happy2Help.job",
+  "pk": 7,
+  "fields": {
+    "name": "Tolles Event",
+    "description": "super event",
+    "event": 4,
+    "total_positions": 999,
+    "open_positions": 999,
+    "canceled": false
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$120000$ph0ahbof3gQ1$yUuC1YF0B1JHGA1h4E7IKDgt3BaHEKLt+j+0ZO0SKqQ=",
+    "last_login": "2018-11-07T22:51:10.333Z",
     "is_superuser": true,
     "username": "roOt",
     "first_name": "",
     "last_name": "",
-    "email": "root.1drone@gmail.com",
+    "email": "",
     "is_staff": true,
     "is_active": true,
-    "date_joined": "2018-10-19T14:41:47.921Z",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "auth.user",
-  "pk": 2,
-  "fields": {
-    "password": "pbkdf2_sha256$120000$bkLcsn1SfJ6O$eMGcbC+Pjg68Rc8b0DGuey+x1P1cE1WBZyhWClm7/Uw=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "Jens",
-    "first_name": "",
-    "last_name": "",
-    "email": "",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2018-10-19T15:36:27.723Z",
+    "date_joined": "2018-11-07T17:02:43Z",
     "groups": [],
     "user_permissions": []
   }
@@ -40,16 +181,16 @@
   "model": "auth.user",
   "pk": 3,
   "fields": {
-    "password": "pbkdf2_sha256$120000$PBdDRifUSbHS$TtCR/Rk6kByFFkhyE/17KX4yBhLUxvCMX14sC5BmaEg=",
+    "password": "pbkdf2_sha256$120000$g5zJ887AnbNY$wI3QF0sGyBtCNU6JZmQuoIOyDZ2Wf2ofCXfMIyysmDU=",
     "last_login": null,
     "is_superuser": false,
-    "username": "Sven",
+    "username": "DLRG_Tom",
     "first_name": "",
     "last_name": "",
     "email": "",
     "is_staff": false,
     "is_active": true,
-    "date_joined": "2018-10-19T15:36:50.467Z",
+    "date_joined": "2018-11-07T17:05:56Z",
     "groups": [],
     "user_permissions": []
   }
@@ -58,16 +199,16 @@
   "model": "auth.user",
   "pk": 4,
   "fields": {
-    "password": "pbkdf2_sha256$120000$Rer7x0OP8SaJ$knRM6+ZRa/pRiL/QWLHGWdR7RBXIPFDp6/ASkiaWxu0=",
+    "password": "pbkdf2_sha256$120000$ZwTJxvLKzwV2$/2U5ZN+n/WBKUXS7r+gnWXIvpeTVFOEjCgK7bbzTamA=",
     "last_login": null,
     "is_superuser": false,
-    "username": "benedickt",
-    "first_name": "Lars",
-    "last_name": "Helm",
-    "email": "larsh@aol.com",
+    "username": "DLRG_Frank",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
     "is_staff": false,
     "is_active": true,
-    "date_joined": "2018-10-23T14:22:16Z",
+    "date_joined": "2018-11-07T17:06:27.369Z",
     "groups": [],
     "user_permissions": []
   }
@@ -76,16 +217,16 @@
   "model": "auth.user",
   "pk": 5,
   "fields": {
-    "password": "pbkdf2_sha256$120000$NhPwPA0CXpRs$rcbP0llHQ9qZDR+c+FBECxYP7s8cNOQRzGsiab6faMk=",
+    "password": "pbkdf2_sha256$120000$TC2eTjiK2Wwa$ihcderfvwgTzWwMUgZ4MkES37GOUVYdB3nREPlqYpA0=",
     "last_login": null,
     "is_superuser": false,
-    "username": "Frederik",
+    "username": "DLRG_Frauke",
     "first_name": "",
     "last_name": "",
     "email": "",
     "is_staff": false,
     "is_active": true,
-    "date_joined": "2018-10-23T14:23:29Z",
+    "date_joined": "2018-11-07T17:06:49Z",
     "groups": [],
     "user_permissions": []
   }
@@ -94,29 +235,388 @@
   "model": "auth.user",
   "pk": 6,
   "fields": {
-    "password": "pbkdf2_sha256$120000$fSiCuiRe1QJm$AE/d05lLvQ4MnFHnMs0v7GHyra7ZVr7zJNVaPz8FgMM=",
+    "password": "pbkdf2_sha256$120000$goKnGjHuDSyY$LEha3JVHYoHcBhtFW5GMslH0x+m44QeMaSVKoumja+I=",
     "last_login": null,
     "is_superuser": false,
-    "username": "chriswilson",
-    "first_name": "Chris",
+    "username": "DRK_Henry",
+    "first_name": "",
     "last_name": "",
-    "email": "chriswilson@pathofexile.com",
+    "email": "",
     "is_staff": false,
     "is_active": true,
-    "date_joined": "2018-10-23T14:26:17Z",
+    "date_joined": "2018-11-07T17:07:22.129Z",
     "groups": [],
     "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 7,
+  "fields": {
+    "password": "pbkdf2_sha256$120000$WcfYh3pjRnBU$O2DIcPJuQKhuYxXvIRxBNwKZ3oJdRkNTDjz9QwM6bnY=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "DRK_Jutta",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2018-11-07T17:07:40.598Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 8,
+  "fields": {
+    "password": "pbkdf2_sha256$120000$vZNqWwcAw4Kv$vXdBTobbGvbyQtjhIn53qsvfcHZhjwPZKTRJx2Hpv58=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "ADH_Peter",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2018-11-07T17:08:18.712Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 9,
+  "fields": {
+    "password": "pbkdf2_sha256$120000$PJypzOvCQLI4$BcPovp09kilztE+SqX412seVdx7udsd8Hdkv4kYR784=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "ADH_Ute",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2018-11-07T17:08:34.753Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 10,
+  "fields": {
+    "password": "pbkdf2_sha256$120000$UkD1ePieFS6J$Z+rUyBCstkiO8fgt8scu7bQ/zfdbmfpfIAjxxQXRNoc=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Solo_Ben",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2018-11-07T17:08:52.834Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 11,
+  "fields": {
+    "password": "pbkdf2_sha256$120000$b3f2fYEX8uro$0ByWDCqQNve+b+iT+lu07gOT/cQ6DLP+uyCXMi0aR44=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Solo_Helmut",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2018-11-07T17:09:06.155Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "Happy2Help.participation",
+  "pk": 1,
+  "fields": {
+    "job": 2,
+    "user": 2,
+    "state": 2,
+    "rating": null
+  }
+},
+{
+  "model": "Happy2Help.participation",
+  "pk": 2,
+  "fields": {
+    "job": 4,
+    "user": 2,
+    "state": 2,
+    "rating": null
+  }
+},
+{
+  "model": "Happy2Help.participation",
+  "pk": 3,
+  "fields": {
+    "job": 3,
+    "user": 10,
+    "state": 1,
+    "rating": null
+  }
+},
+{
+  "model": "Happy2Help.participation",
+  "pk": 4,
+  "fields": {
+    "job": 5,
+    "user": 8,
+    "state": 3,
+    "rating": null
+  }
+},
+{
+  "model": "Happy2Help.participation",
+  "pk": 5,
+  "fields": {
+    "job": 1,
+    "user": 6,
+    "state": 4,
+    "rating": null
+  }
+},
+{
+  "model": "Happy2Help.participation",
+  "pk": 6,
+  "fields": {
+    "job": 6,
+    "user": 5,
+    "state": 4,
+    "rating": null
+  }
+},
+{
+  "model": "Happy2Help.participation",
+  "pk": 7,
+  "fields": {
+    "job": 6,
+    "user": 3,
+    "state": 1,
+    "rating": null
+  }
+},
+{
+  "model": "Happy2Help.participation",
+  "pk": 8,
+  "fields": {
+    "job": 2,
+    "user": 8,
+    "state": 1,
+    "rating": null
+  }
+},
+{
+  "model": "Happy2Help.participation",
+  "pk": 9,
+  "fields": {
+    "job": 5,
+    "user": 7,
+    "state": 1,
+    "rating": null
+  }
+},
+{
+  "model": "Happy2Help.event",
+  "pk": 1,
+  "fields": {
+    "name": "Hochwasser",
+    "description": "Achtung Hochwasser",
+    "organisation": 1,
+    "creator": 4,
+    "location": 1
+  }
+},
+{
+  "model": "Happy2Help.event",
+  "pk": 2,
+  "fields": {
+    "name": "Tiefwasser",
+    "description": "Achtung Tiefwasser",
+    "organisation": 1,
+    "creator": 5,
+    "location": 2
+  }
+},
+{
+  "model": "Happy2Help.event",
+  "pk": 3,
+  "fields": {
+    "name": "Blutspenden",
+    "description": "Spende dein Lebenselexier!",
+    "organisation": 2,
+    "creator": 7,
+    "location": 3
+  }
+},
+{
+  "model": "Happy2Help.event",
+  "pk": 4,
+  "fields": {
+    "name": "Tolles Event",
+    "description": "super event",
+    "organisation": 4,
+    "creator": 2,
+    "location": null
+  }
+},
+{
+  "model": "Happy2Help.hasskill",
+  "pk": 2,
+  "fields": {
+    "skill": 2,
+    "user": 2,
+    "approved": true
+  }
+},
+{
+  "model": "Happy2Help.hasskill",
+  "pk": 3,
+  "fields": {
+    "skill": 3,
+    "user": 2,
+    "approved": false
+  }
+},
+{
+  "model": "Happy2Help.hasskill",
+  "pk": 4,
+  "fields": {
+    "skill": 4,
+    "user": 6,
+    "approved": true
+  }
+},
+{
+  "model": "Happy2Help.hasskill",
+  "pk": 5,
+  "fields": {
+    "skill": 5,
+    "user": 9,
+    "approved": false
+  }
+},
+{
+  "model": "Happy2Help.hasskill",
+  "pk": 6,
+  "fields": {
+    "skill": 6,
+    "user": 2,
+    "approved": true
+  }
+},
+{
+  "model": "Happy2Help.hasskill",
+  "pk": 7,
+  "fields": {
+    "skill": 7,
+    "user": 11,
+    "approved": false
+  }
+},
+{
+  "model": "Happy2Help.hasskill",
+  "pk": 8,
+  "fields": {
+    "skill": 8,
+    "user": 11,
+    "approved": true
+  }
+},
+{
+  "model": "Happy2Help.profile",
+  "pk": 1,
+  "fields": {
+    "user": 2,
+    "birthday": "1986-11-20",
+    "credit_points": 0,
+    "location": null
+  }
+},
+{
+  "model": "Happy2Help.profile",
+  "pk": 2,
+  "fields": {
+    "user": 3,
+    "birthday": "2018-11-07",
+    "credit_points": 0,
+    "location": null
+  }
+},
+{
+  "model": "Happy2Help.profile",
+  "pk": 3,
+  "fields": {
+    "user": 4,
+    "birthday": "2018-11-07",
+    "credit_points": 0,
+    "location": null
+  }
+},
+{
+  "model": "Happy2Help.profile",
+  "pk": 4,
+  "fields": {
+    "user": 5,
+    "birthday": "2018-11-07",
+    "credit_points": 0,
+    "location": null
+  }
+},
+{
+  "model": "Happy2Help.profile",
+  "pk": 5,
+  "fields": {
+    "user": 6,
+    "birthday": "2018-11-07",
+    "credit_points": 0,
+    "location": null
+  }
+},
+{
+  "model": "Happy2Help.profile",
+  "pk": 6,
+  "fields": {
+    "user": 9,
+    "birthday": "2018-11-07",
+    "credit_points": 0,
+    "location": null
+  }
+},
+{
+  "model": "Happy2Help.profile",
+  "pk": 7,
+  "fields": {
+    "user": 10,
+    "birthday": "2018-11-07",
+    "credit_points": 0,
+    "location": null
   }
 },
 {
   "model": "Happy2Help.organisation",
   "pk": 1,
   "fields": {
-    "name": "DRK",
-    "admin": 1,
-    "description": "Tut allen gut",
+    "name": "DLRG",
+    "description": "Deutsche Lebensrettungsgesellschaft",
+    "admin": 3,
     "members": [
-      2
+      3,
+      4,
+      5
     ]
   }
 },
@@ -124,12 +624,12 @@
   "model": "Happy2Help.organisation",
   "pk": 2,
   "fields": {
-    "name": "DLRG",
-    "admin": 1,
-    "description": "Immer vor Ort!",
+    "name": "DRK",
+    "description": "Deutsches Rotes Kreuz",
+    "admin": 6,
     "members": [
-      2,
-      3
+      6,
+      7
     ]
   }
 },
@@ -137,11 +637,12 @@
   "model": "Happy2Help.organisation",
   "pk": 3,
   "fields": {
-    "name": "Evil Corp",
-    "admin": 1,
-    "description": "Geheim!",
+    "name": "Aktion Deutschland Hilft",
+    "description": "Aktion Deutschland Hilft \u2013 gemeinsam schneller helfen!\r\n\r\nAktion Deutschland Hilft ist das B\u00fcndnis renommierter deutscher Hilfsorganisationen. Wenn schwere Katastrophen die Menschheit ersch\u00fcttern, leisten wir Nothilfe. Gemeinsam, schnell und koordiniert. Jetzt einmalig spenden oder als F\u00f6rderer regelm\u00e4\u00dfig helfen!",
+    "admin": 8,
     "members": [
-      1
+      8,
+      9
     ]
   }
 },
@@ -149,12 +650,11 @@
   "model": "Happy2Help.organisation",
   "pk": 4,
   "fields": {
-    "name": "Aktion Deutschland Hilft",
-    "admin": 1,
-    "description": "B\u00fcndnis 23 deutscher Hilfsorganisationen - mit DZI Spendensiegel.",
+    "name": "Test Orga",
+    "description": "this is a test",
+    "admin": 2,
     "members": [
-      5,
-      6
+      2
     ]
   }
 },
@@ -162,623 +662,13 @@
   "model": "Happy2Help.organisation",
   "pk": 5,
   "fields": {
-    "name": "arche NoVa e.V.",
-    "admin": 1,
-    "description": "arche noVa hat 2017 weltweit insgesamt 25 Projekte mit einem Volumen von 13,47 Mio. Euro in 15 Projektl\u00e4ndern durchgef\u00fchrt. Die Ausgaben f\u00fcr \u00d6ffentlichkeitsarbeit und Werbung sowie allgemeine Verwaltung lagen bei 3,33 Prozent",
+    "name": "Herberts Orga",
+    "description": "this is a test 2",
+    "admin": 2,
     "members": [
+      2,
       4
     ]
   }
-},
-{
-  "model": "Happy2Help.organisation",
-  "pk": 6,
-  "fields": {
-    "name": "UNICEF Deutschland",
-    "admin": 1,
-    "description": "Das Kinderhilfswerk der Vereinten Nationen ist eines der entwicklungspolitischen Organe der Vereinten Nationen. Es wurde am 11. Dezember 1946 gegr\u00fcndet, zun\u00e4chst um Kindern in Europa nach dem Zweiten Weltkrieg zu helfen.",
-    "members": [
-=======
-    {
-        "model": "auth.user",
-        "pk": 1,
-        "fields": {
-            "password": "pbkdf2_sha256$120000$f9FCEl4PDmqa$mnHDgEEMPlSI2EkhucrBWJ/tiRHPfca3u+nX45tocT4=",
-            "last_login": "2018-10-23T14:18:45.066Z",
-            "is_superuser": true,
-            "username": "roOt",
-            "first_name": "",
-            "last_name": "",
-            "email": "root.1drone@gmail.com",
-            "is_staff": true,
-            "is_active": true,
-            "date_joined": "2018-10-19T14:41:47.921Z",
-            "groups": [],
-            "user_permissions": []
-        }
-},
-    {
-        "model": "auth.user",
-        "pk": 2,
-        "fields": {
-            "password": "pbkdf2_sha256$120000$bkLcsn1SfJ6O$eMGcbC+Pjg68Rc8b0DGuey+x1P1cE1WBZyhWClm7/Uw=",
-            "last_login": null,
-            "is_superuser": false,
-            "username": "Jens",
-            "first_name": "",
-            "last_name": "",
-            "email": "",
-            "is_staff": false,
-            "is_active": true,
-            "date_joined": "2018-10-19T15:36:27.723Z",
-            "groups": [],
-            "user_permissions": []
-        }
-},
-    {
-        "model": "auth.user",
-        "pk": 3,
-        "fields": {
-            "password": "pbkdf2_sha256$120000$PBdDRifUSbHS$TtCR/Rk6kByFFkhyE/17KX4yBhLUxvCMX14sC5BmaEg=",
-            "last_login": null,
-            "is_superuser": false,
-            "username": "Sven",
-            "first_name": "",
-            "last_name": "",
-            "email": "",
-            "is_staff": false,
-            "is_active": true,
-            "date_joined": "2018-10-19T15:36:50.467Z",
-            "groups": [],
-            "user_permissions": []
-        }
-},
-    {
-        "model": "auth.user",
-        "pk": 4,
-        "fields": {
-            "password": "pbkdf2_sha256$120000$Rer7x0OP8SaJ$knRM6+ZRa/pRiL/QWLHGWdR7RBXIPFDp6/ASkiaWxu0=",
-            "last_login": null,
-            "is_superuser": false,
-            "username": "benedickt",
-            "first_name": "Lars",
-            "last_name": "Helm",
-            "email": "larsh@aol.com",
-            "is_staff": false,
-            "is_active": true,
-            "date_joined": "2018-10-23T14:22:16Z",
-            "groups": [],
-            "user_permissions": []
-        }
-},
-    {
-        "model": "auth.user",
-        "pk": 5,
-        "fields": {
-            "password": "pbkdf2_sha256$120000$NhPwPA0CXpRs$rcbP0llHQ9qZDR+c+FBECxYP7s8cNOQRzGsiab6faMk=",
-            "last_login": null,
-            "is_superuser": false,
-            "username": "Frederik",
-            "first_name": "",
-            "last_name": "",
-            "email": "",
-            "is_staff": false,
-            "is_active": true,
-            "date_joined": "2018-10-23T14:23:29Z",
-            "groups": [],
-            "user_permissions": []
-        }
-},
-    {
-        "model": "auth.user",
-        "pk": 6,
-        "fields": {
-            "password": "pbkdf2_sha256$120000$fSiCuiRe1QJm$AE/d05lLvQ4MnFHnMs0v7GHyra7ZVr7zJNVaPz8FgMM=",
-            "last_login": null,
-            "is_superuser": false,
-            "username": "chriswilson",
-            "first_name": "Chris",
-            "last_name": "",
-            "email": "chriswilson@pathofexile.com",
-            "is_staff": false,
-            "is_active": true,
-            "date_joined": "2018-10-23T14:26:17Z",
-            "groups": [],
-            "user_permissions": []
-        }
-},
-    {
-        "model": "Happy2Help.organisation",
-        "pk": 1,
-        "fields": {
-            "name": "DRK",
-            "description": "Tut allen gut",
-            "member": [
-      2
-    ]
-        }
-},
-    {
-        "model": "Happy2Help.organisation",
-        "pk": 2,
-        "fields": {
-            "name": "DLRG",
-            "description": "Immer vor Ort!",
-            "member": [
-      2,
-      3
-    ]
-        }
-},
-    {
-        "model": "Happy2Help.organisation",
-        "pk": 3,
-        "fields": {
-            "name": "Evil Corp",
-            "description": "Geheim!",
-            "member": [
-      1
-    ]
-        }
-},
-    {
-        "model": "Happy2Help.organisation",
-        "pk": 4,
-        "fields": {
-            "name": "Aktion Deutschland Hilft",
-            "description": "B\u00fcndnis 23 deutscher Hilfsorganisationen - mit DZI Spendensiegel.",
-            "member": [
-      5,
-      6
-    ]
-        }
-},
-    {
-        "model": "Happy2Help.organisation",
-        "pk": 5,
-        "fields": {
-            "name": "arche NoVa e.V.",
-            "description": "arche noVa hat 2017 weltweit insgesamt 25 Projekte mit einem Volumen von 13,47 Mio. Euro in 15 Projektl\u00e4ndern durchgef\u00fchrt. Die Ausgaben f\u00fcr \u00d6ffentlichkeitsarbeit und Werbung sowie allgemeine Verwaltung lagen bei 3,33 Prozent",
-            "member": [
-      4
-    ]
-        }
-},
-    {
-        "model": "Happy2Help.organisation",
-        "pk": 6,
-        "fields": {
-            "name": "UNICEF Deutschland",
-            "description": "Das Kinderhilfswerk der Vereinten Nationen ist eines der entwicklungspolitischen Organe der Vereinten Nationen. Es wurde am 11. Dezember 1946 gegr\u00fcndet, zun\u00e4chst um Kindern in Europa nach dem Zweiten Weltkrieg zu helfen.",
-            "member": [
->>>>>>> H2H/sample_data.json
-      2
-    ]
-        }
-},
-    {
-        "model": "Happy2Help.profile",
-        "pk": 1,
-        "fields": {
-            "user": 1,
-            "birthday": "2018-10-19",
-            "creditPoints": 0
-        }
-},
-    {
-        "model": "Happy2Help.profile",
-        "pk": 2,
-        "fields": {
-            "user": 2,
-            "birthday": "2018-10-19",
-            "creditPoints": 0
-
-        }
-},
-    {
-        "model": "Happy2Help.profile",
-        "pk": 3,
-        "fields": {
-            "user": 3,
-            "birthday": "2018-10-19",
-            "creditPoints": 0
-
-        }
-},
-    {
-        "model": "Happy2Help.profile",
-        "pk": 4,
-        "fields": {
-            "user": 4,
-            "birthday": "1990-10-23",
-            "creditPoints": 0
-
-        }
-},
-    {
-        "model": "Happy2Help.profile",
-        "pk": 5,
-        "fields": {
-            "user": 5,
-            "birthday": "1995-01-02",
-            "creditPoints": 0
-
-        }
-},
-    {
-        "model": "Happy2Help.event",
-        "pk": 1,
-        "fields": {
-            "name": "Tafel",
-            "description": "Gib allen etwas!",
-            "organisation": 1,
-            "creator": 2
-        }
-},
-    {
-        "model": "Happy2Help.event",
-        "pk": 2,
-        "fields": {
-            "name": "\u00d6lunfall",
-            "description": "Schwerer UNFALL!!",
-            "organisation": 2,
-            "creator": 2
-        }
-},
-    {
-        "model": "Happy2Help.event",
-        "pk": 3,
-        "fields": {
-            "name": "Kommt schnell!",
-            "description": "Es brennt!",
-            "organisation": 2,
-            "creator": 3
-        }
-},
-    {
-        "model": "Happy2Help.event",
-        "pk": 4,
-        "fields": {
-            "name": "Wasser, Sanit\u00e4r & Hygiene",
-            "description": "Wasser ist das Lebensmittel Nummer eins \u2013 doch weltweit haben immer noch Millionen Menschen keinen ausreichenden Zugang dazu. Viele sind auf unreines Wasser angewiesen, das Krankheitserreger verbreitet. Angemessene sanit\u00e4re Versorgung und Trinkwasseraufbereitungsanlagen sind daher ebenfalls unerl\u00e4sslich, damit das Trinkwasser gesundheitlich einwandfrei bleibt.",
-            "organisation": 5,
-            "creator": 4
-        }
-},
-    {
-        "model": "Happy2Help.event",
-        "pk": 5,
-        "fields": {
-            "name": "Kochen f\u00fcr Freunde",
-            "description": "Aktiv werden f\u00fcr Fl\u00fcchtlingskinder! Nie zuvor haben sie uns so sehr gebraucht wie jetzt. Allein in Syrien und den Nachbarl\u00e4ndern sind Millionen M\u00e4dchen und Jungen auf der Flucht. Viele Menschen m\u00f6chten helfen. Deshalb hat UNICEF die kreativ-kulinarische Aktion \u201eKochen f\u00fcr Freunde\u201c ins Leben gerufen. Als Gastgeber laden Sie ein und bekochen Ihre Lieben. Jeder Gast gibt, was ihm das Essen wert ist. Mit dem Erl\u00f6s wird die Hilfe von UNICEF f\u00fcr syrische Fl\u00fcchtlingskinder unterst\u00fctzt.",
-            "organisation": 6,
-            "creator": 2
-        }
-},
-    {
-        "model": "Happy2Help.event",
-        "pk": 6,
-        "fields": {
-            "name": "Ehrenamtliches Engagement bei unseren B\u00fcndnisorganisationen",
-            "description": "Auch f\u00fcr die Hilfsorganisationen unseres B\u00fcndnisses ist der Einsatz ehrenamtlicher Mitarbeiterinnen und Mitarbeiter eine gro\u00dfe Unterst\u00fctzung. Durch die Vielfalt unserer B\u00fcndnisorganisationen ergeben sich zahlreiche M\u00f6glichkeiten f\u00fcr freiwilliges Mitwirken. Informieren Sie sich hier \u00fcber die ehrenamtliche T\u00e4tigkeit bei unseren B\u00fcndnisorganisationen.",
-            "organisation": 4,
-            "creator": 5
-        }
-},
-    {
-        "model": "Happy2Help.event",
-        "pk": 7,
-        "fields": {
-            "name": "Mitarbeit im B\u00fcndnisb\u00fcro von Aktion Deutschland Hilft in Bonn",
-            "description": "Wenn Sie unter der Woche regelm\u00e4\u00dfig einige Stunden Zeit haben, k\u00f6nnen Sie die hauptamtlichen Mitarbeiter bei ihrer t\u00e4glichen Arbeit unterst\u00fctzen. Abh\u00e4ngig von Ihren Interessen und St\u00e4rken k\u00f6nnen Sie in verschiedenen Bereichen eingesetzt werden. Gerne kl\u00e4ren wir bei einem pers\u00f6nlichen Gespr\u00e4ch die individuellen Einsatzm\u00f6glichkeiten und den Umfang des Engagements ab.",
-            "organisation": 4,
-            "creator": 6
-        }
-},
-    {
-        "model": "Happy2Help.job",
-        "pk": 1,
-        "fields": {
-            "name": "Essen austragen",
-            "description": "den leuten essen bringen!",
-            "event": 1,
-            "openpositions": 7
-        }
-},
-    {
-        "model": "Happy2Help.job",
-        "pk": 2,
-        "fields": {
-            "name": "Kochen",
-            "description": "mit geschmack",
-            "event": 1,
-            "openpositions": 9
-
-        }
-},
-    {
-        "model": "Happy2Help.job",
-        "pk": 3,
-        "fields": {
-            "name": "\u00d6l trinken",
-            "description": "das ganze \u00f6l muss weg sein",
-            "event": 2,
-            "openpositions": 12
-
-        }
-},
-    {
-        "model": "Happy2Help.job",
-        "pk": 4,
-        "fields": {
-            "name": "ersthelfer",
-            "description": "jemanden retten",
-            "event": 3,
-            "openpositions": 13
-
-        }
-},
-    {
-        "model": "Happy2Help.job",
-        "pk": 5,
-        "fields": {
-            "name": "Kochen",
-            "description": "Wir suchen jemanden der kochen kann!",
-            "event": 3,
-            "openpositions": 1
-
-        }
-},
-    {
-        "model": "Happy2Help.job",
-        "pk": 6,
-        "fields": {
-            "name": "Rohrbruch",
-            "description": "Rohrbruch in der Revalerstra\u00dfe! Kommt schnell helfen!",
-            "event": 4,
-            "openpositions": 11
-
-        }
-},
-    {
-        "model": "Happy2Help.job",
-        "pk": 7,
-        "fields": {
-            "name": "Verstopfung entfernen",
-            "description": "Unsere Toilette ist verstopft! HILFE!!!",
-            "event": 4,
-            "openpositions": 999
-
-        }
-},
-    {
-        "model": "Happy2Help.job",
-        "pk": 8,
-        "fields": {
-            "name": "Tippse",
-            "description": "Wir brauchen hier dringend eine Tippse!",
-            "event": 6,
-            "openpositions": 1
-
-        }
-},
-    {
-        "model": "Happy2Help.job",
-        "pk": 9,
-        "fields": {
-            "name": "Wachmann",
-            "description": "Wir brauchen jemanden der uns besch\u00fctzt...",
-            "event": 6,
-            "openpositions": 2
-
-        }
-},
-    {
-        "model": "Happy2Help.job",
-        "pk": 10,
-        "fields": {
-            "name": "Latschenkiefer F\u00e4llen",
-            "description": "Wer kann eine Latschenkiefer f\u00e4llen?",
-            "event": 7,
-            "openpositions": 1
-
-        }
-},
-    {
-        "model": "Happy2Help.job",
-        "pk": 11,
-        "fields": {
-            "name": "Bonbons austeilen",
-            "description": "Wir ben\u00f6tigen einen Bonbonausteiler, bitte schnell.",
-            "event": 7,
-            "openpositions": 13
-
-        }
-},
-    {
-        "model": "Happy2Help.rating",
-        "pk": 1,
-        "fields": {
-            "user_a": 2,
-            "orga_a": null,
-            "user_b": null,
-            "orga_b": 1,
-            "rating": -1.0
-        }
-},
-    {
-        "model": "Happy2Help.rating",
-        "pk": 2,
-        "fields": {
-            "user_a": null,
-            "orga_a": 3,
-            "user_b": 1,
-            "orga_b": null,
-            "rating": 1.0
-        }
-},
-    {
-        "model": "Happy2Help.participation",
-        "pk": 1,
-        "fields": {
-            "job": 1,
-            "user": 2,
-            "rating": 1,
-            "state": "AP"
-        }
-},
-    {
-        "model": "Happy2Help.participation",
-        "pk": 2,
-        "fields": {
-            "job": 2,
-            "user": 2,
-            "rating": null,
-            "state": "PA"
-
-
-        }
-},
-    {
-        "model": "Happy2Help.participation",
-        "pk": 3,
-        "fields": {
-            "job": 2,
-            "user": 1,
-            "rating": null,
-            "state": "PA"
-
-        }
-},
-    {
-        "model": "Happy2Help.participation",
-        "pk": 4,
-        "fields": {
-            "job": 1,
-            "user": 3,
-            "rating": null,
-            "state": "AC"
-        }
-},
-    {
-        "model": "Happy2Help.participation",
-        "pk": 5,
-        "fields": {
-            "job": 7,
-            "user": 1,
-            "rating": 1,
-            "state": "DE"
-        }
-},
-    {
-        "model": "Happy2Help.participation",
-        "pk": 6,
-        "fields": {
-            "job": 6,
-            "user": 1,
-            "rating": null,
-            "state": "PA"
-
-
-        }
-},
-    {
-        "model": "Happy2Help.participation",
-        "pk": 7,
-        "fields": {
-            "job": 2,
-            "user": 5,
-            "rating": null,
-            "state": "DE"
-
-        }
-},
-    {
-        "model": "Happy2Help.participation",
-        "pk": 8,
-        "fields": {
-            "job": 5,
-            "user": 5,
-            "rating": null,
-            "state": "PA"
-
-        }
-},
-    {
-        "model": "Happy2Help.participation",
-        "pk": 9,
-        "fields": {
-            "job": 4,
-            "user": 4,
-            "rating": null,
-            "state": "PA"
-
-        }
-},
-    {
-        "model": "Happy2Help.participation",
-        "pk": 10,
-        "fields": {
-            "job": 7,
-            "user": 1,
-            "rating": null,
-            "state": "PA"
-
-        }
-},
-    {
-        "model": "Happy2Help.participation",
-        "pk": 11,
-        "fields": {
-            "job": 9,
-            "user": 3,
-            "rating": null,
-            "state": "PA"
-
-        }
-},
-    {
-        "model": "Happy2Help.favourite",
-        "pk": 1,
-        "fields": {
-            "event": 1,
-            "user": 1
-        }
-},
-    {
-        "model": "Happy2Help.report",
-        "pk": 1,
-        "fields": {
-            "user_a": 2,
-            "orga_a": null,
-            "user_b": null,
-            "orga_b": 2,
-            "text": "Ganz b\u00f6ser Verein!",
-            "reason": "HA"
-        }
-},
-    {
-        "model": "Happy2Help.report",
-        "pk": 2,
-        "fields": {
-            "user_a": 5,
-            "orga_a": null,
-            "user_b": 4,
-            "orga_b": null,
-            "text": "Er hat Bl\u00f6dmann gesagt!",
-            "reason": "HA"
-        }
-},
-    {
-        "model": "Happy2Help.report",
-        "pk": 3,
-        "fields": {
-            "user_a": null,
-            "orga_a": 6,
-            "user_b": 5,
-            "orga_b": null,
-            "text": "Er stalkt unsere Mitarbeiter",
-            "reason": "AB"
-        }
 }
 ]
