@@ -11,7 +11,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     birthday = models.DateField(blank=True, null=True)
     credit_points = models.PositiveIntegerField(default=0)
-    location = models.OneToOneField('Location.Location', on_delete=models.PROTECT, null=True)
+    location = models.OneToOneField('Location.Location', on_delete=models.PROTECT, null=True, blank=True)
 
     def __str__(self):
         return str(self.user)
