@@ -279,20 +279,18 @@ class Query(graphene.ObjectType):
     def resolve_events(self, info):
         return Event.objects.all()
 
-    """
-    Returns all events that are inside the span of the rectangle area made up of two coordinates.
-    ul = upper left
-    lr = lower right
-    """
     def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):
-        qs = Event.objects.all()
-        res = []
-        for event in qs:
-            l = event.location
-            if (l.longitude >= ul_longitude and l.latitude >= ul_latitude and
-                    l.longitude <= lr_longitude and l.latitude <= lr_latitude):
-                res.append(event)
-        return res
+        """
+        Returns all events that are inside the span of the rectangle area made up of two coordinates.
+        ul = upper left
+        lr = lower right
+        """
+        return Event.objects.filter(
+            location__latitude__gte=ul_latitude,
+            location__longitude__gte=ul_longitude,
+            location__latitude__lte=lr_latitude,
+            location__longitude__lte=lr_longitude,
+        )
 
     def resolve_jobs(self, info):
         return [p.job for p in Participation.objects.filter(user=info.context.user)]
