@@ -228,11 +228,10 @@ class UpdateEvent(graphene.Mutation):
         event = Event.objects.get(id=event_id)
         organisation = event.organisation
 
-        if not organisation:
-            if user != event.creator:
+        if not organisation and user != event.creator:
                 raise Exception("You need to be the event creator to update the event")
 
-        if user not in organisation.members:
+        if user not in organisation.members.all():
             raise Exception(f"You need to be a member of {organisation.name} to update the event")
 
         if kwargs.get('name', None):
@@ -257,12 +256,14 @@ class DeleteEvent(graphene.Mutation):
         event = Event.objects.get(id=event_id)
         organisation = event.organisation
 
-        if not organisation and user != event.creator:
+        if user != event.creator:
+            if organisation.exists():
+                if user not in organisation.members.all():
+                    raise Exception(f"You need to be a member of {organisation.name} to delete the event")
             raise Exception("You need to be the event creator to delete the event")
 
-        if user not in organisation.members:
-            raise Exception(f"You need to be a member of {organisation.name} to delete the event")
         event.delete()
+
         return DeleteEvent(event)
 
 
