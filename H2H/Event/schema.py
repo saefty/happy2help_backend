@@ -221,6 +221,8 @@ class CreateEvent(graphene.Mutation):
         organisation = None
         if organisation_id:
             organisation = Organisation.objects.get(id=organisation_id)
+            if user not in organisation.members.all():
+                raise Exception(f"You need to be a member of {organisation.name} to create an event")
         else:
             # TODO: test this!
             user.profile.credit_points -= 10  # should raise Exception when < 0. Does not for SQLite unfortunately
