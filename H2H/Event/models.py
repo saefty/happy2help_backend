@@ -33,7 +33,7 @@ class Job(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(null=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    total_positions = models.IntegerField(default=999)
+    total_positions = models.PositiveIntegerField(default=None, null=True, blank=True)
     canceled = models.BooleanField(default=False)
 
     def occupied_positions(self):
