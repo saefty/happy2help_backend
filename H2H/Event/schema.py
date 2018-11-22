@@ -187,21 +187,43 @@ class CreateEvent(graphene.Mutation):
         organisation_id = graphene.ID()
         name = graphene.String(required=True)
         description = graphene.String(required=True)
-        location_id = graphene.ID(required=True)
+        location_id = graphene.ID()
+        location_name = graphene.String()
+        location_lat = graphene.Float()
+        location_lon = graphene.Float()
         start = graphene.DateTime(required=True)
         end = graphene.DateTime(required=True)
 
     @login_required
-    def mutate(self, info, name, description, location_id, **kwargs):
+    def mutate(self, info, name, description, **kwargs):
         user = info.context.user
-        location = Location.objects.get(id=location_id)
 
+        location_id = kwargs.get('location_id', None)
+        location = None
+        if location_id:
+            # add existing location
+            location = Location.objects.get(id=location_id)
+        else:
+            # create new location
+            location_name = kwargs.get('location_name', None)
+            location_lat = kwargs.get('location_lat', None)
+            location_lon = kwargs.get('location_lon', None)
+            if location_name and location_lat and location_lon:
+                location = Location.objects.create(
+                    name=location_name,
+                    latitude=location_lat,
+                    longitude=location_lon
+                )
+            else: raise Exception("Please provide: location_name, location_lat, location_lon OR location_id !")
+
+        # add organisation if given
         organisation_id = kwargs.get('organisation_id', None)
         organisation = None
         if organisation_id:
             organisation = Organisation.objects.get(id=organisation_id)
         else:
-            user.profile.credit_points -= 10
+            # TODO: test this!
+            user.profile.credit_points -= 10  # should raise Exception when < 0. Does not for SQLite unfortunately
             user.profile.save()
 
         event = Event.objects.create(
@@ -279,14 +301,18 @@ class DeleteEvent(graphene.Mutation):
 class Query(graphene.ObjectType):
     event = graphene.Field(EventType, id=graphene.Int())
     events = graphene.List(EventType)
-    events_by_coordinates = graphene.List(EventType, ul_longitude=graphene.Float(), ul_latitude=graphene.Float(),
-                                          lr_longitude=graphene.Float(), lr_latitude=graphene.Float())
-
+    events_by_coordinates = graphene.List(
+        EventType,
+        ul_longitude=graphene.Float(),
+        ul_latitude=graphene.Float(),
+        lr_longitude=graphene.Float(),
+        lr_latitude=graphene.Float()
+    )
     jobs = graphene.List(JobType)
     participations = graphene.List(ParticipationType)
 
     def resolve_event(self, info, id):
-        return Event.objects.get(pk=id)
+        return Event.objects.get(id=id)
 
     def resolve_events(self, info):
         return Event.objects.filter(end__gt = timezone.now())
