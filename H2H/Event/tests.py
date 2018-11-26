@@ -24,10 +24,10 @@ class TestEvent(JSONWebTokenTestCase):
         cls.location_1 = Location.objects.create(latitude=15, longitude=15, name="test_location_1")
 
         cls.event_0 = Event.objects.create(name='test_event_0', description='test', location=cls.location_0,
-                                           start='2050-11-01T11:00:00', end='2050-11-02T11:00:00',
+                                           start='2050-11-01T11:00:00+00:00', end='2050-11-02T11:00:00+00:00',
                                            organisation=cls.organisation_0, creator=cls.user_0)
         cls.event_1 = Event.objects.create(name='test_event_1', description='test', location=cls.location_1,
-                                           start='2050-11-01T11:00:00', end='2050-11-02T11:00:00',
+                                           start='2050-11-01T11:00:00+00:00', end='2050-11-02T11:00:00+00:00',
                                            organisation=cls.organisation_1, creator=cls.user_1)
 
     def setUp(self):
@@ -106,7 +106,7 @@ class TestEvent(JSONWebTokenTestCase):
             mutation {
                 createEvent(organisationId: "1", name: "test_event_1", description: "test",
                             locationName: "test_location_0", locationLat: 52.564668, locationLon: 13.360665,
-                            start: "2050-11-01T11:00:00", end: "2050-11-02T11:00:00") {
+                            start: "2050-11-01T11:00:00+00:00", end: "2050-11-02T11:00:00+00:00") {
                     event {
                         id
                         creator {
@@ -140,7 +140,7 @@ class TestEvent(JSONWebTokenTestCase):
             mutation {
                 createEvent(organisationId: "2", name: "test_event_1", description: "test",
                             locationName: "test_location_0", locationLat: 52.564668, locationLon: 13.360665,
-                            start: "2050-11-01T11:00:00", end: "2050-11-02T11:00:00") {
+                            start: "2050-11-01T11:00:00+00:00", end: "2050-11-02T11:00:00+00:00") {
                     event {
                         id
                     }
@@ -158,7 +158,7 @@ class TestEvent(JSONWebTokenTestCase):
             mutation {
                 createEvent(organisationId: "1", name: "test_event_1", description: "test",
                             locationName: "test_location_0", locationLat: 52.564668, locationLon: 13.360665,
-                            start: "2050-11-02T11:00:00", end: "2050-11-01T11:00:00") {
+                            start: "2050-11-02T11:00:00+00:00", end: "2050-11-01T11:00:00+00:00") {
                     event {
                         id
                     }
@@ -202,7 +202,7 @@ class TestEvent(JSONWebTokenTestCase):
             mutation {
                 createEvent(name: "test_event_1", description: "test",
                             locationName: "test_location_0", locationLat: 52.564668, locationLon: 13.360665,
-                            start: "2050-11-01T11:00:00", end: "2050-11-02T11:00:00") {
+                            start: "2050-11-01T11:00:00+00:00", end: "2050-11-02T11:00:00+00:00") {
                     event {
                         id
                         creator {
@@ -227,7 +227,7 @@ class TestEvent(JSONWebTokenTestCase):
             mutation {
                 createEvent(name: "test_event_2", description: "test",
                             locationName: "test_location_2", locationLat: 52.564668, locationLon: 13.360665,
-                            start: "2050-11-01T11:00:00", end: "2050-11-02T11:00:00") {
+                            start: "2050-11-01T11:00:00+00:00", end: "2050-11-02T11:00:00+00:00") {
                     event {
                         id
                     }
@@ -246,33 +246,157 @@ class TestEvent(JSONWebTokenTestCase):
         self.assertIsNone(resp_2.data["createEvent"]["event"]["organisation"])                          # no organisation
         self.assertEqual(resp_2.data["createEvent"]["event"]["creator"]["profile"]["creditPoints"], 0)  # subtracted 10 credits
 
-        #self.assertIsNone(resp_3.data["createEvent"]["event"]) -> NOT WORKING WITH SQLITE
+        #self.assertIsNone(resp_3.data["createEvent"]["event"])                                         -> NOT WORKING WITH SQLITE
 
-"""
+    def test_update_event(self):
+        self.client.execute(
+            """
+            mutation {
+                updateEvent(eventId: 1, name: "updated", description: "updated",
+                            start: "2050-12-01T11:00:00+00:00", end: "2050-12-02T11:00:00+00:00") {
+                    event {
+                        id
+                    }
+                }
+            }
+            """
+        )
+
+        resp_0 = self.client.execute(
+            """
+            query {
+              event(id: 1) {
+                  id
+                  name
+                  description
+                  start
+                  end
+                }
+            }
+            """
+        )
+
+        self.assertEqual(resp_0.data["event"]["name"], "updated")
+        self.assertEqual(resp_0.data["event"]["description"], "updated")
+        self.assertEqual(resp_0.data["event"]["start"], "2050-12-01T11:00:00+00:00")
+        self.assertEqual(resp_0.data["event"]["end"], "2050-12-02T11:00:00+00:00")
+
+    def test_update_event_invalid_organisation(self):
+        """ Test for updating an event the user is not a member of """
+        resp_0 = self.client.execute(
+            """
+            mutation {
+                updateEvent(eventId: 2, name: "updated", description: "updated",
+                            start: "2050-12-01T11:00:00+00:00", end: "2050-12-02T11:00:00+00:00") {
+                    event {
+                        id
+                    }
+                }
+            }
+            """
+        )
+
+        self.assertIsNone(resp_0.data["updateEvent"])
+
     def test_delete_event(self):
-        pass
+        resp_0 = self.client.execute(
+            """
+            mutation {
+                deleteEvent(eventId: 1) {
+                    event {
+                        name
+                    }
+                }
+            }
+            """
+        )
 
-    def test_delete_event_with_participations(self):
-        pass
+        resp_1 = self.client.execute(
+            """
+            query {
+              event(id: 1) {
+                  id
+                }
+            }
+            """
+        )
+
+        resp_2 = self.client.execute(
+            """
+            query {
+              events {
+                  id
+                }
+            }
+            """
+        )
+
+        self.assertEqual(resp_0.data["deleteEvent"]["event"]["name"], "test_event_0")
+        self.assertIsNone(resp_1.data["event"])
+        self.assertEqual(len(resp_2.data["events"]), 1)
+
+    def test_delete_event_invalid_organisation(self):
+        """ Test for deleting an event the user is not a member of """
+        resp_0 = self.client.execute(
+           """
+            mutation {
+                deleteEvent(eventId: 2) {
+                    event {
+                        name
+                    }
+                }
+            }
+            """
+        )
+
+        self.assertIsNone(resp_0.data["deleteEvent"])
 
     def test_create_job(self):
-        location = Location.objects.create(latitude=52.544937, longitude=13.351855, name="Beuth")
-        event = Event.objects.create(
-            name="Mega Event",
-            description="Da muss man hin!",
-            creator=self.user,
-            location=location
-        )
-        resp = self.client.execute(
-            """"""
+        resp_0 = self.client.execute(
+            """
             mutation {
-                createJob(eventId:1 name:"ein job" description:"toller job" totalPositions:2) {
+                createJob(eventId:1, name:"test_job", description:"test_job", totalPositions: 2) {
+                job {
+                  id
+                  name
+                  description
+                  totalPositions
+                }
+              }
+            }
+            """
+        )
+
+        resp_1 = self.client.execute(
+            """
+            mutation {
+                createJob(eventId:1, name:"test_job", description:"test_job", totalPositions: 2) {
                 job {
                   id
                 }
               }
             }
-            """"""
+            """
         )
-        self.assertTrue(resp.data["createJob"]["job"]["id"])
-"""
+
+        self.assertTrue(resp_0.data["createJob"]["job"]["id"])
+        self.assertEqual(resp_0.data["createJob"]["job"]["name"], "test_job")
+        self.assertEqual(resp_0.data["createJob"]["job"]["description"], "test_job")
+        self.assertEqual(resp_0.data["createJob"]["job"]["totalPositions"], 2)
+        self.assertIsNone(resp_1.data["createJob"])    # job already exists
+
+
+    def test_create_job_invalid_creator(self):
+        resp = self.client.execute(
+            """
+            mutation {
+                createJob(eventId:2, name:"test_job", description:"test_job", totalPositions: 2) {
+                job {
+                  id
+                }
+              }
+            }
+            """
+        )
+
+        self.assertIsNone(resp.data["createJob"])
