@@ -1,4 +1,4 @@
-"""
+
 from django.contrib.auth import get_user_model
 
 from graphql_jwt.testcases import JSONWebTokenTestCase
@@ -19,7 +19,7 @@ class UsersTests(JSONWebTokenTestCase):
 
     def test_edit_birthday(self):
         self.client.execute(
-            """"""
+            """
             mutation {
               updateUser(birthday:"1986-11-20"){
                 user {
@@ -29,7 +29,7 @@ class UsersTests(JSONWebTokenTestCase):
                 }
               }
             }
-            """"""
+            """
         )
 
         resp = self.client.execute("query{user{profile{birthday}}}")
@@ -37,7 +37,7 @@ class UsersTests(JSONWebTokenTestCase):
 
     def test_invalid_birthday(self):
         resp = self.client.execute(
-            """"""
+            """
             mutation {
               updateUser(birthday:1){
                 user {
@@ -47,13 +47,13 @@ class UsersTests(JSONWebTokenTestCase):
                 }
               }
             }
-            """"""
+            """
         )
         self.assertTrue(resp.errors)
 
     def test_credit_points_are_zero(self):
         resp = self.client.execute(
-            """"""
+            """
             query {
               user {
                 profile {
@@ -61,13 +61,13 @@ class UsersTests(JSONWebTokenTestCase):
                 }
               }
             }
-            """"""
+            """
         )
         self.assertEqual(resp.data['user']['profile']['creditPoints'], 0)
 
     def test_increase_credit_points(self):
         resp = self.client.execute(
-            """"""
+            """
             mutation {
               updateUser(creditPoints:10){
                 user {
@@ -77,7 +77,7 @@ class UsersTests(JSONWebTokenTestCase):
                 }
               }
             }
-            """"""
+            """
         )
 
         self.assertEqual(resp.data['updateUser']['user']['profile']['creditPoints'], 10)
@@ -91,7 +91,7 @@ class UsersTests(JSONWebTokenTestCase):
 
     def test_create_skill(self):
         resp = self.client.execute(
-            """"""
+            """
             mutation {
               createSkill(name:"Flechten") {
                     skill {
@@ -99,14 +99,14 @@ class UsersTests(JSONWebTokenTestCase):
                 }
               }
             }
-            """"""
+            """
         )
 
         self.assertTrue(resp.data['createSkill']['skill']['name'] == 'Flechten')
 
         # HasSkill should also be created and user.skills should have an entry
         resp = self.client.execute(
-            """"""
+            """
             query {
               user {
                 skills {
@@ -114,7 +114,7 @@ class UsersTests(JSONWebTokenTestCase):
                 }
               }
             }
-            """""""
+            """
         )
         self.assertTrue('Flechten' in [s['name'] for s in resp.data['user']['skills']])
 
@@ -125,7 +125,7 @@ class UsersTests(JSONWebTokenTestCase):
         hasskill = HasSkill.objects.create(user=self.user, skill=skill)
 
         resp = self.client.execute(
-            """"""
+            """
             mutation {
               deleteSkill(skillId:1) {
                 skill {
@@ -133,7 +133,7 @@ class UsersTests(JSONWebTokenTestCase):
                 }
               }
             }
-            """"""
+            """
         )
 
         self.assertTrue(resp.data['deleteSkill']['skill']['name'] == 'Hobeln')
@@ -141,4 +141,3 @@ class UsersTests(JSONWebTokenTestCase):
         # Skill should not have been deleted. Only the HasSkill
         self.assertTrue(Skill.objects.filter(name="Hobeln").exists())
         self.assertFalse(HasSkill.objects.filter(user=self.user).exists())
-"""
