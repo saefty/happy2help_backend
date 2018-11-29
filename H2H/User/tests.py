@@ -1,3 +1,4 @@
+
 from django.contrib.auth import get_user_model
 
 from graphql_jwt.testcases import JSONWebTokenTestCase

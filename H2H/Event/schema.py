@@ -290,7 +290,7 @@ class DeleteEvent(graphene.Mutation):
         organisation = event.organisation
 
         if user != event.creator:
-            if organisation.exists():
+            if organisation:
                 if user not in organisation.members.all():
                     raise Exception(f"You need to be a member of {organisation.name} to delete the event")
             raise Exception("You need to be the event creator to delete the event")
