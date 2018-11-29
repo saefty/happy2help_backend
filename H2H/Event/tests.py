@@ -1,8 +1,9 @@
 from django.contrib.auth import get_user_model
 
 from graphql_jwt.testcases import JSONWebTokenTestCase
+from unittest import skip
 
-from Event.models import Event
+from Event.models import Event, Job, Participation
 from Location.models import Location
 from Organisation.models import Organisation
 from User.models import Profile
@@ -29,6 +30,14 @@ class TestEvent(JSONWebTokenTestCase):
         cls.event_1 = Event.objects.create(name='test_event_1', description='test', location=cls.location_1,
                                            start='2050-11-01T11:00:00+00:00', end='2050-11-02T11:00:00+00:00',
                                            organisation=cls.organisation_1, creator=cls.user_1)
+
+        cls.job_0 = Job.objects.create(name="test_job_0", description="test", event=cls.event_0, total_positions=2)
+        cls.job_1 = Job.objects.create(name="test_job_1", description="test", event=cls.event_1, total_positions=4)
+        cls.participation_job_0 = Job.objects.create(name="participation_job_0", description="test", event=cls.event_0, total_positions=4)
+        cls.participation_job_1 = Job.objects.create(name="participation_job_1", description="test", event=cls.event_0, total_positions=1)
+
+        cls.participation_0 = Participation.objects.create(job=cls.participation_job_0, user=cls.user_0, state=4)
+        cls.participation_1 = Participation.objects.create(job=cls.participation_job_0, user=cls.user_1, state=4)
 
     def setUp(self):
         self.client.authenticate(self.user_0)
@@ -351,11 +360,27 @@ class TestEvent(JSONWebTokenTestCase):
 
         self.assertIsNone(resp_0.data["deleteEvent"])
 
+    def test_query_jobs(self):
+        """ Test for querying jobSet of user """
+        resp_0 = self.client.execute(
+            """
+            query {
+                jobs {
+                    id
+                    name
+                }
+            }
+            """
+         )
+
+        self.assertTrue(resp_0.data["jobs"][0])
+        self.assertEqual(len(resp_0.data["jobs"]), 1)
+
     def test_create_job(self):
         resp_0 = self.client.execute(
             """
             mutation {
-                createJob(eventId:1, name:"test_job", description:"test_job", totalPositions: 2) {
+                createJob(eventId:1, name:"test_job", description:"test_job") {
                 job {
                   id
                   name
@@ -370,7 +395,7 @@ class TestEvent(JSONWebTokenTestCase):
         resp_1 = self.client.execute(
             """
             mutation {
-                createJob(eventId:1, name:"test_job", description:"test_job", totalPositions: 2) {
+                createJob(eventId:1, name:"test_job", description:"test_job") {
                 job {
                   id
                 }
@@ -382,7 +407,7 @@ class TestEvent(JSONWebTokenTestCase):
         self.assertTrue(resp_0.data["createJob"]["job"]["id"])
         self.assertEqual(resp_0.data["createJob"]["job"]["name"], "test_job")
         self.assertEqual(resp_0.data["createJob"]["job"]["description"], "test_job")
-        self.assertEqual(resp_0.data["createJob"]["job"]["totalPositions"], 2)
+        self.assertEqual(resp_0.data["createJob"]["job"]["totalPositions"], None)
         self.assertIsNone(resp_1.data["createJob"])    # job already exists
 
 
@@ -400,3 +425,281 @@ class TestEvent(JSONWebTokenTestCase):
         )
 
         self.assertIsNone(resp.data["createJob"])
+
+    def test_update_job(self):
+        self.client.execute(
+            """
+            mutation {
+                createJob(eventId:1, name:"test_job", description:"test_job", totalPositions: 2) {
+                job {
+                  id
+                  name
+                  description
+                  totalPositions
+                }
+              }
+            }
+            """
+        )
+
+        resp_0 = self.client.execute(
+            """
+            mutation {
+                updateJob(jobId:3, name:"updated", description:"updated", totalPositions: 3) {
+                job {
+                  id
+                  name
+                  description
+                  totalPositions
+                }
+              }
+            }
+            """
+        )
+
+        self.assertTrue(resp_0.data["updateJob"]["job"]["id"])
+        self.assertEqual(resp_0.data["updateJob"]["job"]["name"], "updated")
+        self.assertEqual(resp_0.data["updateJob"]["job"]["description"], "updated")
+        self.assertEqual(resp_0.data["updateJob"]["job"]["totalPositions"], 3)
+
+    def test_update_job_invalid_creator(self):
+        resp_0 = self.client.execute(
+            """
+            mutation {
+                updateJob(jobId:2, name:"updated", description:"updated", totalPositions: 3) {
+                job {
+                  id
+                  name
+                  description
+                  totalPositions
+                }
+              }
+            }
+            """
+        )
+
+        self.assertIsNone(resp_0.data["updateJob"])
+
+    def test_update_job_invalid_total_positions(self):
+        """ Test for updating a job to have less totalPositions than already applied participations. """        
+        """ jobId = 5 participation_job_0 """
+        resp_0 = self.client.execute(
+            """
+            mutation {
+                updateJob(jobId:5, totalPositions: 1) {     
+                job {
+                  id
+                  name
+                  description
+                  totalPositions
+                  participationSet {
+                      id
+                      user { username }
+                      state
+                  }
+                }
+              }
+            }
+            """
+        )
+
+        self.assertIsNone(resp_0.data["updateJob"])
+
+    @skip
+    def test_delete_job(self):
+        """ Test deleting jobs """
+        """ test_event_0 has jobs with id 1, 3 and 5 """
+        
+        resp_0 = self.client.execute(
+            """
+            mutation {
+                deleteJob(jobId: 5) {
+                    job {
+                        name
+                    }
+                }
+            }
+            """
+        )
+
+        resp_1 = self.client.execute(
+            """
+            query {
+                event(id: 1) {
+                    jobSet {
+                        id
+                    }
+                }
+            }
+            """
+        )
+
+        resp_2 = self.client.execute(
+            """
+            query {
+                participations {
+                    id
+                    job {
+                        name
+                    }
+                    state
+                }
+            }
+            """
+        )
+
+        self.assertEqual(resp_0.data["deleteJob"]["job"]["name"], "participation_job_0")
+        self.assertEqual(len(resp_1.data["event"]["jobSet"]), 2)
+        self.assertIsNone(resp_2.data["participations"][0]["job"])
+        self.assertEqual(resp_2.data["participations"][0]["state"],  5)
+
+    def test_create_participation(self):
+        resp_0 = self.client.execute(
+            """
+            mutation {
+                createParticipation(jobId: 6) {
+                    participation {
+                        id
+                        user { username }
+                        state
+                    }
+                }
+            }
+            """
+        )
+
+        resp_1 = self.client.execute(
+            """
+            mutation {
+                createParticipation(jobId: 6) {
+                    participation {
+                        id
+                    }
+                }
+            }
+            """
+        )
+
+        self.assertTrue(resp_0.data["createParticipation"]["participation"]["id"])
+        self.assertEqual(resp_0.data["createParticipation"]["participation"]["user"]["username"], "test_user")
+        self.assertEqual(resp_0.data["createParticipation"]["participation"]["state"], 2)
+        self.assertIsNone(resp_1.data["createParticipation"])   # usser already applied
+
+    def test_update_participation(self):
+        
+        """ authenticated user is event creator AND participator in this case """
+        r = self.client.execute(
+            """
+            mutation {
+                createParticipation(jobId: 3) {
+                    participation {
+                        id
+                        user { username }
+                        state
+                    }
+                }
+            }
+            """
+        )
+        
+        resp_0 = self.client.execute(
+            """
+            mutation {
+                updateParticipation(participationId: 3, state: 4) {
+                    participation {
+                        id
+                        state
+                    }
+                }
+            }
+            """
+        )
+
+        resp_1 = self.client.execute(
+            """
+            mutation {
+                updateParticipation(participationId: 3, state: 3) {
+                    participation {
+                        id
+                        state
+                    }
+                }
+            }
+            """
+        )
+
+        resp_2 = self.client.execute(
+            """
+            mutation {
+                updateParticipation(participationId: 3, state: 5) {
+                    participation {
+                        id
+                        state
+                    }
+                }
+            }
+            """
+        )
+
+        """ participator is not the event creator in this case """
+        self.client.execute(
+            """
+            mutation {
+                createParticipation(jobId: 4) {
+                    participation {
+                        id
+                        user { username }
+                        state
+                    }
+                }
+            }
+            """
+        )
+
+        resp_3 = self.client.execute(
+            """
+            mutation {
+                updateParticipation(participationId: 4, state: 3) {
+                    participation {
+                        id
+                        state
+                    }
+                }
+            }
+            """
+        )
+
+        resp_4 = self.client.execute(
+            """
+            mutation {
+                updateParticipation(participationId: 4, state: 4) {
+                    participation {
+                        id
+                        state
+                    }
+                }
+            }
+            """
+        )
+
+        """ user is not the participator """
+        resp_5 = self.client.execute(
+            """
+            mutation {
+                updateParticipation(participationId: 2, state: 5) {
+                    participation {
+                        id
+                        state
+                    }
+                }
+            }
+            """
+        )
+
+        self.assertTrue(resp_0.data["updateParticipation"]["participation"]["id"])
+        self.assertEqual(resp_0.data["updateParticipation"]["participation"]["state"], 4)
+        self.assertEqual(resp_1.data["updateParticipation"]["participation"]["state"], 3)
+        self.assertEqual(resp_2.data["updateParticipation"]["participation"]["state"], 5)
+        self.assertIsNone(resp_3.data["updateParticipation"])   # need to be event creator
+        self.assertIsNone(resp_4.data["updateParticipation"])   # need to be event creator
+        self.assertIsNone(resp_5.data["updateParticipation"])   # need to be participator
