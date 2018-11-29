@@ -1,6 +1,7 @@
 import graphene
 import graphql_jwt
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 
@@ -62,6 +63,7 @@ class CreateUser(graphene.Mutation):
     def mutate(self, info, username, password, email, **kwargs):
         # save user
         user = User(username=username, email=email)
+        validate_password(password=password, user=user)
         user.set_password(password)
         user.save()
 
