@@ -92,10 +92,10 @@ class CreateJob(graphene.Mutation):
         event_id = graphene.ID(required=True)
         name = graphene.String(required=True)
         description = graphene.String()
-        total_positions = graphene.Int(required=True)
+        total_positions = graphene.Int(required=False)
 
     @login_required
-    def mutate(self, info, event_id, name, description, total_positions):
+    def mutate(self, info, event_id, name, description, **kwargs):
         user = info.context.user
         event = Event.objects.get(id=event_id)
 
@@ -108,7 +108,7 @@ class CreateJob(graphene.Mutation):
             name=name,
             description=description,
             event=event,
-            total_positions=total_positions
+            total_positions=kwargs.get("total_positions", None)
         )
         return CreateJob(job=job)
 

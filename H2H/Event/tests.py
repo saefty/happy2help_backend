@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 
 from graphql_jwt.testcases import JSONWebTokenTestCase
 
-from Event.models import Event
+from Event.models import Event, Job
 from Location.models import Location
 from Organisation.models import Organisation
 from User.models import Profile
@@ -29,6 +29,11 @@ class TestEvent(JSONWebTokenTestCase):
         cls.event_1 = Event.objects.create(name='test_event_1', description='test', location=cls.location_1,
                                            start='2050-11-01T11:00:00+00:00', end='2050-11-02T11:00:00+00:00',
                                            organisation=cls.organisation_1, creator=cls.user_1)
+
+        cls.job_0 = Job.objects.create(name="test_job_0", description="test", event=cls.event_0, total_positions=2)
+        cls.job_1 = Job.objects.create(name="test_job_1", description="test", event=cls.event_1, total_positions=4)
+
+        
 
     def setUp(self):
         self.client.authenticate(self.user_0)
@@ -355,7 +360,7 @@ class TestEvent(JSONWebTokenTestCase):
         resp_0 = self.client.execute(
             """
             mutation {
-                createJob(eventId:1, name:"test_job", description:"test_job", totalPositions: 2) {
+                createJob(eventId:1, name:"test_job", description:"test_job") {
                 job {
                   id
                   name
@@ -370,7 +375,7 @@ class TestEvent(JSONWebTokenTestCase):
         resp_1 = self.client.execute(
             """
             mutation {
-                createJob(eventId:1, name:"test_job", description:"test_job", totalPositions: 2) {
+                createJob(eventId:1, name:"test_job", description:"test_job") {
                 job {
                   id
                 }
@@ -382,7 +387,7 @@ class TestEvent(JSONWebTokenTestCase):
         self.assertTrue(resp_0.data["createJob"]["job"]["id"])
         self.assertEqual(resp_0.data["createJob"]["job"]["name"], "test_job")
         self.assertEqual(resp_0.data["createJob"]["job"]["description"], "test_job")
-        self.assertEqual(resp_0.data["createJob"]["job"]["totalPositions"], 2)
+        self.assertEqual(resp_0.data["createJob"]["job"]["totalPositions"], None)
         self.assertIsNone(resp_1.data["createJob"])    # job already exists
 
 
@@ -400,3 +405,75 @@ class TestEvent(JSONWebTokenTestCase):
         )
 
         self.assertIsNone(resp.data["createJob"])
+
+    def test_update_job(self):
+        self.client.execute(
+            """
+            mutation {
+                createJob(eventId:1, name:"test_job", description:"test_job", totalPositions: 2) {
+                job {
+                  id
+                  name
+                  description
+                  totalPositions
+                }
+              }
+            }
+            """
+        )
+
+        resp_0 = self.client.execute(
+            """
+            mutation {
+                updateJob(jobId:3, name:"updated", description:"updated", totalPositions: 3) {
+                job {
+                  id
+                  name
+                  description
+                  totalPositions
+                }
+              }
+            }
+            """
+        )
+
+        self.assertTrue(resp_0.data["updateJob"]["job"]["id"])
+        self.assertEqual(resp_0.data["updateJob"]["job"]["name"], "updated")
+        self.assertEqual(resp_0.data["updateJob"]["job"]["description"], "updated")
+        self.assertEqual(resp_0.data["updateJob"]["job"]["totalPositions"], 3)
+
+    def test_update_job_invalid_creator(self):
+        resp_0 = self.client.execute(
+            """
+            mutation {
+                updateJob(jobId:2, name:"updated", description:"updated", totalPositions: 3) {
+                job {
+                  id
+                  name
+                  description
+                  totalPositions
+                }
+              }
+            }
+            """
+        )
+
+        self.assertIsNone(resp_0.data["updateJob"])
+
+def test_update_job_invalid_total_positions(self):
+        resp_0 = self.client.execute(
+            """
+            mutation {
+                updateJob(jobId:2, name:"updated", description:"updated", totalPositions: 3) {
+                job {
+                  id
+                  name
+                  description
+                  totalPositions
+                }
+              }
+            }
+            """
+        )
+
+        self.assertIsNone(resp_0.data["updateJob"])
