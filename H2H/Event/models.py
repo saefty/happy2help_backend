@@ -9,9 +9,18 @@ from django.dispatch import receiver
 class Event(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
+    start = models.DateTimeField()
+    end = models.DateTimeField()
+
     organisation = models.ForeignKey('Organisation.Organisation', on_delete=models.CASCADE, blank=True, null=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
     location = models.OneToOneField('Location.Location', on_delete=models.PROTECT, null=True)
+
+    def save(self, *args, **kwargs):
+        if self.end < self.start:
+            raise Exception("End time before start time")
+        self.full_clean()
+        super(Event, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -24,7 +33,7 @@ class Job(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(null=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    total_positions = models.IntegerField(default=999)
+    total_positions = models.PositiveIntegerField(default=None, null=True, blank=True)
     canceled = models.BooleanField(default=False)
 
     def occupied_positions(self):

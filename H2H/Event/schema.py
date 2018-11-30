@@ -1,13 +1,13 @@
 import graphene
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
+from django.utils import timezone
 
 from Location.models import Location
 from .models import Event, Job, Participation
 from Organisation.models import Organisation
 
 
-# Types
 class EventType(DjangoObjectType):
     class Meta:
         model = Event
@@ -28,7 +28,6 @@ class ParticipationType(DjangoObjectType):
         return self.state
 
 
-# create Participation
 class CreateParticipation(graphene.Mutation):
     participation = graphene.Field(ParticipationType)
 
@@ -93,10 +92,10 @@ class CreateJob(graphene.Mutation):
         event_id = graphene.ID(required=True)
         name = graphene.String(required=True)
         description = graphene.String()
-        total_positions = graphene.Int(required=True)
+        total_positions = graphene.Int(required=False)
 
     @login_required
-    def mutate(self, info, event_id, name, description, total_positions):
+    def mutate(self, info, event_id, name, description, **kwargs):
         user = info.context.user
         event = Event.objects.get(id=event_id)
 
@@ -109,7 +108,7 @@ class CreateJob(graphene.Mutation):
             name=name,
             description=description,
             event=event,
-            total_positions=total_positions
+            total_positions=kwargs.get("total_positions", None)
         )
         return CreateJob(job=job)
 
@@ -188,19 +187,45 @@ class CreateEvent(graphene.Mutation):
         organisation_id = graphene.ID()
         name = graphene.String(required=True)
         description = graphene.String(required=True)
-        location_id = graphene.ID(required=True)
+        location_id = graphene.ID()
+        location_name = graphene.String()
+        location_lat = graphene.Float()
+        location_lon = graphene.Float()
+        start = graphene.DateTime(required=True)
+        end = graphene.DateTime(required=True)
 
     @login_required
-    def mutate(self, info, name, description, location_id, **kwargs):
+    def mutate(self, info, name, description, **kwargs):
         user = info.context.user
-        location = Location.objects.get(id=location_id)
 
+        location_id = kwargs.get('location_id', None)
+        location = None
+        if location_id:
+            # add existing location
+            location = Location.objects.get(id=location_id)
+        else:
+            # create new location
+            location_name = kwargs.get('location_name', None)
+            location_lat = kwargs.get('location_lat', None)
+            location_lon = kwargs.get('location_lon', None)
+            if location_name and location_lat and location_lon:
+                location = Location.objects.create(
+                    name=location_name,
+                    latitude=location_lat,
+                    longitude=location_lon
+                )
+            else: raise Exception("Please provide: location_name, location_lat, location_lon OR location_id !")
+
+        # add organisation if given
         organisation_id = kwargs.get('organisation_id', None)
         organisation = None
         if organisation_id:
             organisation = Organisation.objects.get(id=organisation_id)
+            if user not in organisation.members.all():
+                raise Exception(f"You need to be a member of {organisation.name} to create an event")
         else:
-            user.profile.credit_points -= 10
+            # TODO: test this!
+            user.profile.credit_points -= 10  # should raise Exception when < 0. Does not for SQLite unfortunately
             user.profile.save()
 
         event = Event.objects.create(
@@ -208,7 +233,9 @@ class CreateEvent(graphene.Mutation):
             description=description,
             creator=user,
             location=location,
-            organisation=organisation  # will be set to NULL if organisation = None
+            organisation=organisation,  # will be set to NULL if organisation = None
+            start=kwargs.get('start'),
+            end=kwargs.get('end')
         )
 
         return CreateEvent(event=event)
@@ -221,6 +248,8 @@ class UpdateEvent(graphene.Mutation):
         event_id = graphene.ID(required=True)
         name = graphene.String()
         description = graphene.String()
+        start = graphene.DateTime()
+        end = graphene.DateTime()
 
     @login_required
     def mutate(self, info, event_id, **kwargs):
@@ -229,7 +258,7 @@ class UpdateEvent(graphene.Mutation):
         organisation = event.organisation
 
         if not organisation and user != event.creator:
-                raise Exception("You need to be the event creator to update the event")
+            raise Exception("You need to be the event creator to update the event")
 
         if user not in organisation.members.all():
             raise Exception(f"You need to be a member of {organisation.name} to update the event")
@@ -238,6 +267,10 @@ class UpdateEvent(graphene.Mutation):
             event.name = kwargs['name']
         if kwargs.get('description', None):
             event.description = kwargs['description']
+        if kwargs.get('start', None):
+            event.start = kwargs['start']
+        if kwargs.get('end', None):
+            event.end = kwargs['end']
 
         event.save()
 
@@ -257,7 +290,7 @@ class DeleteEvent(graphene.Mutation):
         organisation = event.organisation
 
         if user != event.creator:
-            if organisation.exists():
+            if organisation:
                 if user not in organisation.members.all():
                     raise Exception(f"You need to be a member of {organisation.name} to delete the event")
             raise Exception("You need to be the event creator to delete the event")
@@ -267,17 +300,24 @@ class DeleteEvent(graphene.Mutation):
         return DeleteEvent(event)
 
 
-# Queries
 class Query(graphene.ObjectType):
+    event = graphene.Field(EventType, id=graphene.Int())
     events = graphene.List(EventType)
-    events_by_coordinates = graphene.List(EventType, ul_longitude=graphene.Float(), ul_latitude=graphene.Float(),
-                                          lr_longitude=graphene.Float(), lr_latitude=graphene.Float())
-
+    events_by_coordinates = graphene.List(
+        EventType,
+        ul_longitude=graphene.Float(),
+        ul_latitude=graphene.Float(),
+        lr_longitude=graphene.Float(),
+        lr_latitude=graphene.Float()
+    )
     jobs = graphene.List(JobType)
     participations = graphene.List(ParticipationType)
 
+    def resolve_event(self, info, id):
+        return Event.objects.get(id=id)
+
     def resolve_events(self, info):
-        return Event.objects.all()
+        return Event.objects.filter(end__gt = timezone.now())
 
     def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):
         """
@@ -286,6 +326,7 @@ class Query(graphene.ObjectType):
         lr = lower right
         """
         return Event.objects.filter(
+            end__gt = timezone.now(),
             location__latitude__gte=ul_latitude,
             location__longitude__gte=ul_longitude,
             location__latitude__lte=lr_latitude,
@@ -299,7 +340,6 @@ class Query(graphene.ObjectType):
         return Participation.objects.filter(user=info.context.user)
 
 
-# Mutations
 class Mutation(graphene.AbstractType):
     create_participation = CreateParticipation.Field()
     update_participation = UpdateParticipation.Field()
@@ -311,6 +351,3 @@ class Mutation(graphene.AbstractType):
     create_event = CreateEvent.Field()
     update_event = UpdateEvent.Field()
     delete_event = DeleteEvent.Field()
-
-    create_participation = CreateParticipation.Field()
-    update_participation = UpdateParticipation.Field()
