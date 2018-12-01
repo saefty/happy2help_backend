@@ -14,8 +14,14 @@ class EventType(DjangoObjectType):
 
 
 class JobType(DjangoObjectType):
+    current_users_participation_state = graphene.Int()
+
     class Meta:
         model = Job
+
+    def resolve_current_users_participation_state(self, info, **kwargs):
+        participation = Participation.objects.filter(user=info.context.user, job=self)
+        return None if not participation else participation.first().state
 
 
 class ParticipationType(DjangoObjectType):
@@ -260,7 +266,7 @@ class UpdateEvent(graphene.Mutation):
         if not organisation and user != event.creator:
             raise Exception("You need to be the event creator to update the event")
 
-        if user not in organisation.members.all():
+        if organisation and user not in organisation.members.all():
             raise Exception(f"You need to be a member of {organisation.name} to update the event")
 
         if kwargs.get('name', None):
