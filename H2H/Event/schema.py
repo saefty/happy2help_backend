@@ -70,8 +70,8 @@ class UpdateParticipation(graphene.Mutation):
         job = participation.job
         event_creator = job.event.creator
 
-        if job.canceled:  # it is not possible to change the state of a canceled/inactive job
-            raise Exception("Job is canceled/inactive")
+        # if job.deleted_at:  # it is not possible to change the state of a canceled/inactive job
+        #     raise Exception("Job is canceled/inactive")
 
         if state == 5:  # 5 = canceled
             if user != participation.user:
@@ -80,9 +80,11 @@ class UpdateParticipation(graphene.Mutation):
             participation.save()
             return UpdateParticipation(participation=participation)
 
-        if state == 2:
+        if state == 2:  # 2 = applied
             if user != participation.user:
                 raise Exception("You need to be the participator")
+            if job.deleted_at:
+                raise Exception("The job you try to apply for has been removed")
             participation.state = state
             participation.save()
             return UpdateParticipation(participation=participation)
@@ -90,6 +92,8 @@ class UpdateParticipation(graphene.Mutation):
         if state in (3, 4):  # 3 = declined, 4 = accepted
             if event_creator != user:
                 raise Exception("You need to be the event creator")
+            if state == 4 and job.deleted_at:
+                raise Exception("You cannot accept a user for a removed job")
             participation.state = state
             participation.save()
             return UpdateParticipation(participation=participation)
@@ -323,6 +327,7 @@ class Query(graphene.ObjectType):
         lr_latitude=graphene.Float()
     )
     jobs = graphene.List(JobType)
+    job = graphene.Field(JobType, id=graphene.Int())
     participations = graphene.List(ParticipationType)
 
     def resolve_event(self, info, id):
@@ -346,7 +351,12 @@ class Query(graphene.ObjectType):
         )
 
     def resolve_jobs(self, info):
-        return [p.job for p in Participation.objects.filter(user=info.context.user)]
+        return Job.objects.filter(participation__user=info.context.user)
+        # return [p.job for p in Participation.objects.filter(user=info.context.user)]
+
+    def resolve_job(self, info, id):
+        # all_objects to also select jobs with deleted_at != None
+        return Job.all_objects.filter(participation__user=info.context.user).get(id=id)
 
     def resolve_participations(self, info):
         return Participation.objects.filter(user=info.context.user)
