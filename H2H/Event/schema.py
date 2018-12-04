@@ -13,17 +13,6 @@ class EventType(DjangoObjectType):
         model = Event
 
 
-class JobType(DjangoObjectType):
-    current_users_participation_state = graphene.Int()
-
-    class Meta:
-        model = Job
-
-    def resolve_current_users_participation_state(self, info, **kwargs):
-        participation = Participation.objects.filter(user=info.context.user, job=self)
-        return None if not participation else participation.first().state
-
-
 class ParticipationType(DjangoObjectType):
     state = graphene.Int()
 
@@ -32,6 +21,17 @@ class ParticipationType(DjangoObjectType):
 
     def resolve_state(self, info, **kwargs):
         return self.state
+
+
+class JobType(DjangoObjectType):
+    current_users_participation = graphene.Field(ParticipationType)
+
+    class Meta:
+        model = Job
+
+    def resolve_current_users_participation(self, info, **kwargs):
+        participation = Participation.objects.filter(user=info.context.user, job=self)
+        return None if not participation else participation.first()
 
 
 class CreateParticipation(graphene.Mutation):
