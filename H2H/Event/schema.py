@@ -80,10 +80,16 @@ class UpdateParticipation(graphene.Mutation):
             participation.save()
             return UpdateParticipation(participation=participation)
 
-        if event_creator != user:
-            raise Exception("You need to be the event creator")
+        if state == 2:
+            if user != participation.user:
+                raise Exception("You need to be the participator")
+            participation.state = state
+            participation.save()
+            return UpdateParticipation(participation=participation)
 
         if state in (3, 4):  # 3 = declined, 4 = accepted
+            if event_creator != user:
+                raise Exception("You need to be the event creator")
             participation.state = state
             participation.save()
             return UpdateParticipation(participation=participation)
