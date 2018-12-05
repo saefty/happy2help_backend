@@ -85,7 +85,7 @@ class UpdateUser(graphene.Mutation):
         email = graphene.String()
         birthday = graphene.types.datetime.Date()
         credit_points = graphene.Int()
-        location_id = graphene.Int()
+        location_id = graphene.ID()
 
     @login_required
     def mutate(self, info, **kwargs):

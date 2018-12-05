@@ -317,7 +317,7 @@ class DeleteEvent(graphene.Mutation):
 
 
 class Query(graphene.ObjectType):
-    event = graphene.Field(EventType, id=graphene.Int())
+    event = graphene.Field(EventType, id=graphene.ID())
     events = graphene.List(EventType)
     events_by_coordinates = graphene.List(
         EventType,
