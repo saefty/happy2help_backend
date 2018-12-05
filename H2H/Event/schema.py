@@ -317,7 +317,7 @@ class DeleteEvent(graphene.Mutation):
 
 
 class Query(graphene.ObjectType):
-    event = graphene.Field(EventType, id=graphene.Int())
+    event = graphene.Field(EventType, id=graphene.ID())
     events = graphene.List(EventType)
     events_by_coordinates = graphene.List(
         EventType,
@@ -327,7 +327,7 @@ class Query(graphene.ObjectType):
         lr_latitude=graphene.Float()
     )
     jobs = graphene.List(JobType)
-    job = graphene.Field(JobType, id=graphene.Int())
+    job = graphene.Field(JobType, id=graphene.ID())
     participations = graphene.List(ParticipationType)
 
     def resolve_event(self, info, id):
