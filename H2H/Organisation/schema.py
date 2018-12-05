@@ -88,10 +88,13 @@ class DeleteOrganisation(graphene.Mutation):
 # Queries
 class Query(graphene.ObjectType):
     organisations = graphene.List(OrganisationType)
+    organisation = graphene.Field(OrganisationType, id=graphene.ID)
 
     def resolve_organisations(self, info):
         return Organisation.objects.all()
 
+    def resolve_organisation(self, info, id):
+        return Organisation.objects.get(id=id)
 
 # Mutations
 class Mutation(graphene.AbstractType):
