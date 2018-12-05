@@ -48,8 +48,8 @@ class CreateParticipation(graphene.Mutation):
         if Participation.objects.filter(user=user, job=job).exists():
             raise Exception("User already applied")
 
-        if job.canceled:  # can not apply to a canceled job
-            raise Exception("Job is canceled/inactive")
+        if job.deleted_at:  # can not apply to a canceled job
+            raise Exception("Job has been removed")
 
         participation = Participation.objects.create(user=user, job=job, state=2)
 
@@ -327,7 +327,7 @@ class Query(graphene.ObjectType):
         lr_latitude=graphene.Float()
     )
     jobs = graphene.List(JobType)
-    job = graphene.Field(JobType, id=graphene.ID())
+    job = graphene.Field(JobType, id=graphene.Int())
     participations = graphene.List(ParticipationType)
 
     def resolve_event(self, info, id):
