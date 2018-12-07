@@ -327,7 +327,7 @@ class Query(graphene.ObjectType):
         lr_latitude=graphene.Float()
     )
     jobs = graphene.List(JobType)
-    job = graphene.Field(JobType, id=graphene.Int())
+    job = graphene.Field(JobType, id=graphene.ID())
     participations = graphene.List(ParticipationType)
 
     def resolve_event(self, info, id):
