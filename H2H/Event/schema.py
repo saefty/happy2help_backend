@@ -3,7 +3,9 @@ from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from django.utils import timezone
 
+# from Feedback.schema import RatingType
 from Location.models import Location
+# from User.schema import UserType
 from .models import Event, Job, Participation
 from Organisation.models import Organisation
 
@@ -35,7 +37,11 @@ class JobType(DjangoObjectType):
 
 
 class CreateParticipation(graphene.Mutation):
-    participation = graphene.Field(ParticipationType)
+    id = graphene.ID()
+    job = graphene.Field(JobType)
+    user = graphene.Field("User.schema.UserType")
+    state = graphene.Int()
+    rating = graphene.Field("Feedback.schema.RatingType")
 
     class Arguments:
         job_id = graphene.ID(required=True)
@@ -53,11 +59,21 @@ class CreateParticipation(graphene.Mutation):
 
         participation = Participation.objects.create(user=user, job=job, state=2)
 
-        return CreateParticipation(participation=participation)
+        return CreateParticipation(
+            id=participation.id,
+            job=job,
+            user=user,
+            state=participation.state,
+            rating=participation.rating
+        )
 
 
 class UpdateParticipation(graphene.Mutation):
-    participation = graphene.Field(ParticipationType)
+    id = graphene.ID()
+    job = graphene.Field(JobType)
+    user = graphene.Field("User.schema.UserType")
+    state = graphene.Int()
+    rating = graphene.Field("Feedback.schema.RatingType")
 
     class Arguments:
         participation_id = graphene.ID(required=True)
@@ -78,7 +94,13 @@ class UpdateParticipation(graphene.Mutation):
                 raise Exception("You need to be the participator")
             participation.state = state
             participation.save()
-            return UpdateParticipation(participation=participation)
+            return UpdateParticipation(
+                id=participation.id,
+                job=job,
+                user=user,
+                state=participation.state,
+                rating=participation.rating
+            )
 
         if state == 2:  # 2 = applied
             if user != participation.user:
@@ -87,7 +109,13 @@ class UpdateParticipation(graphene.Mutation):
                 raise Exception("The job you try to apply for has been removed")
             participation.state = state
             participation.save()
-            return UpdateParticipation(participation=participation)
+            return UpdateParticipation(
+                id=participation.id,
+                job=job,
+                user=user,
+                state=participation.state,
+                rating=participation.rating
+            )
 
         if state in (3, 4):  # 3 = declined, 4 = accepted
             if event_creator != user:
@@ -96,13 +124,23 @@ class UpdateParticipation(graphene.Mutation):
                 raise Exception("You cannot accept a user for a removed job")
             participation.state = state
             participation.save()
-            return UpdateParticipation(participation=participation)
+            return UpdateParticipation(
+                id=participation.id,
+                job=job,
+                user=user,
+                state=participation.state,
+                rating=participation.rating
+            )
 
         raise Exception("State change not allowed")
 
 
 class CreateJob(graphene.Mutation):
-    job = graphene.Field(JobType)
+    id = graphene.ID()
+    name = graphene.String()
+    description = graphene.String()
+    event = graphene.Field(EventType)
+    total_positions = graphene.Int()
 
     class Arguments:
         event_id = graphene.ID(required=True)
@@ -126,11 +164,21 @@ class CreateJob(graphene.Mutation):
             event=event,
             total_positions=kwargs.get("total_positions", None)
         )
-        return CreateJob(job=job)
+        return CreateJob(
+            id=job.id,
+            name=job.name,
+            description=job.description,
+            event=job.event,
+            total_positions=job.job.total_positions
+        )
 
 
 class UpdateJob(graphene.Mutation):
-    job = graphene.Field(JobType)
+    id = graphene.ID()
+    name = graphene.String()
+    description = graphene.String()
+    event = graphene.Field(EventType)
+    total_positions = graphene.Int()
 
     class Arguments:
         job_id = graphene.ID(required=True)
@@ -162,7 +210,13 @@ class UpdateJob(graphene.Mutation):
             job.total_positions = total_positions
 
         job.save()
-        return CreateJob(job=job)
+        return UpdateJob(
+            id=job.id,
+            name=job.name,
+            description=job.description,
+            event=job.event,
+            total_positions=job.total_positions
+        )
 
 
 class DeleteJob(graphene.Mutation):
@@ -171,7 +225,7 @@ class DeleteJob(graphene.Mutation):
     if a job gets deleted, participations with a state of accepted or applied
     will get cancelled (job delete signal).
     """
-    job = graphene.Field(JobType)
+    id = graphene.ID()
 
     class Arguments:
         job_id = graphene.ID(required=True)
@@ -189,7 +243,7 @@ class DeleteJob(graphene.Mutation):
             raise Exception("Cannot delete last job of event. Events need to have at least one job")
 
         job.delete()
-        return DeleteJob(job=job)
+        return DeleteJob(id=job_id)
 
 
 class CreateEvent(graphene.Mutation):
@@ -197,7 +251,14 @@ class CreateEvent(graphene.Mutation):
     Creates an event. Organisation is optional.
     If no organisation is given, the creator has to pay credits.
     """
-    event = graphene.Field(EventType)
+    id = graphene.ID()
+    name = graphene.String()
+    description = graphene.String()
+    start = graphene.DateTime()
+    end = graphene.DateTime()
+    organisation = graphene.Field("Organisation.schema.OrganisationType")
+    creator = graphene.Field("User.schema.UserType")
+    location = graphene.Field("Location.schema.LocationType")
 
     class Arguments:
         organisation_id = graphene.ID()
@@ -254,11 +315,27 @@ class CreateEvent(graphene.Mutation):
             end=kwargs.get('end')
         )
 
-        return CreateEvent(event=event)
+        return CreateEvent(
+            id=event.id,
+            name=event.name,
+            description=event.description,
+            start=event.start,
+            end=event.end,
+            organisation=event.organisation,
+            creator=event.creator,
+            location=event.location
+        )
 
 
 class UpdateEvent(graphene.Mutation):
-    event = graphene.Field(EventType)
+    id = graphene.ID()
+    name = graphene.String()
+    description = graphene.String()
+    start = graphene.DateTime()
+    end = graphene.DateTime()
+    organisation = graphene.Field("Organisation.schema.OrganisationType")
+    creator = graphene.Field("User.schema.UserType")
+    location = graphene.Field("Location.schema.LocationType")
 
     class Arguments:
         event_id = graphene.ID(required=True)
@@ -289,12 +366,20 @@ class UpdateEvent(graphene.Mutation):
             event.end = kwargs['end']
 
         event.save()
-
-        return UpdateEvent(event=event)
+        return UpdateEvent(
+            id=event.id,
+            name=event.name,
+            description=event.description,
+            start=event.start,
+            end=event.end,
+            organisation=event.organisation,
+            creator=event.creator,
+            location=event.location
+        )
 
 
 class DeleteEvent(graphene.Mutation):
-    event = graphene.Field(EventType)
+    id = graphene.ID()
 
     class Arguments:
         event_id = graphene.ID(required=True)
@@ -313,7 +398,7 @@ class DeleteEvent(graphene.Mutation):
 
         event.delete()
 
-        return DeleteEvent(event)
+        return DeleteEvent(id=event_id)
 
 
 class Query(graphene.ObjectType):
