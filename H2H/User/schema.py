@@ -2,6 +2,7 @@ import graphene
 import graphql_jwt
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from django.core.validators import validate_email
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 
@@ -53,6 +54,8 @@ class ProfileType(DjangoObjectType):
 class CreateUser(graphene.Mutation):
     id = graphene.ID()
     username = graphene.String()
+    first_name = graphene.String()
+    last_name = graphene.String()
     email = graphene.String()
     profile = graphene.Field(ProfileType)
 
@@ -60,14 +63,25 @@ class CreateUser(graphene.Mutation):
         username = graphene.String(required=True)
         password = graphene.String(required=True)
         email = graphene.String(required=True)
+        first_name = graphene.String(required=False)
+        last_name = graphene.String(required=False)
         birthday = graphene.types.datetime.Date()
         location_id = graphene.ID()
 
     def mutate(self, info, username, password, email, **kwargs):
         # save user
+        validate_email(email)
         user = User(username=username, email=email)
         validate_password(password=password, user=user)
         user.set_password(password)
+
+        first_name = kwargs.get("first_name", None)
+        if first_name:
+            user.first_name = first_name
+        last_name = kwargs.get("last_name", None)
+        if last_name:
+            user.last_name = last_name
+
         user.save()
 
         # save profile
@@ -80,6 +94,8 @@ class CreateUser(graphene.Mutation):
         return CreateUser(
             id=user.id,
             username=user.username,
+            first_name=user.first_name,
+            last_name=user.last_name,
             email=user.email,
             profile=user.profile
         )
@@ -89,6 +105,8 @@ class CreateUser(graphene.Mutation):
 class UpdateUser(graphene.Mutation):
     id = graphene.ID()
     username = graphene.String()
+    first_name = graphene.String()
+    last_name = graphene.String()
     email = graphene.String()
     profile = graphene.Field(ProfileType)
 
@@ -97,23 +115,36 @@ class UpdateUser(graphene.Mutation):
         birthday = graphene.types.datetime.Date()
         credit_points = graphene.Int()
         location_id = graphene.ID()
+        first_name = graphene.String()
+        last_name = graphene.String()
 
     @login_required
     def mutate(self, info, **kwargs):
         user = info.context.user
         # users old email if email=""
-        user.email = user.email if not kwargs.get('email', None) else kwargs["email"]
+        email = kwargs.get("email", None)
+        if email:
+            validate_email(email)
+            user.email = email
         user.profile.birthday = kwargs.get('birthday', user.profile.birthday)
         user.profile.credit_points = kwargs.get('credit_points', user.profile.credit_points)
         location_id = kwargs.get('location_id', None)
         if location_id:
             location = Location.objects.get(id=location_id)
             user.profile.location = location
+        first_name = kwargs.get("first_name", None)
+        if first_name:
+            user.first_name = first_name
+        last_name = kwargs.get("last_name", None)
+        if last_name:
+            user.last_name = last_name
         user.save()
         user.profile.save()
         return UpdateUser(
             id=user.id,
             username=user.username,
+            first_name=user.first_name,
+            last_name=user.last_name,
             email=user.email,
             profile=user.profile
         )
