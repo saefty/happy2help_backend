@@ -3,10 +3,10 @@ from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from django.utils import timezone
 
-# from Feedback.schema import RatingType
+
 from Location.models import Location
-# from User.schema import UserType
-from .models import Event, Job, Participation
+from User.models import Skill
+from .models import Event, Job, Participation, RequiresSkill
 from Organisation.models import Organisation
 
 
@@ -34,6 +34,11 @@ class JobType(DjangoObjectType):
     def resolve_current_users_participation(self, info, **kwargs):
         participation = Participation.objects.filter(user=info.context.user, job=self)
         return None if not participation else participation.first()
+
+
+class RequiresSkillType(DjangoObjectType):
+    class Meta:
+        model = RequiresSkill
 
 
 class CreateParticipation(graphene.Mutation):
@@ -141,12 +146,14 @@ class CreateJob(graphene.Mutation):
     description = graphene.String()
     event = graphene.Field(EventType)
     total_positions = graphene.Int()
+    required_skills = graphene.List(graphene.String)
 
     class Arguments:
         event_id = graphene.ID(required=True)
         name = graphene.String(required=True)
         description = graphene.String()
         total_positions = graphene.Int(required=False)
+        required_skills = graphene.List(graphene.String, required=False)
 
     @login_required
     def mutate(self, info, event_id, name, description, **kwargs):
@@ -164,12 +171,20 @@ class CreateJob(graphene.Mutation):
             event=event,
             total_positions=kwargs.get("total_positions", None)
         )
+
+        required_skills = kwargs.get("required_skills", None)
+        if required_skills:
+            for required_skill in required_skills:
+                skill, created = Skill.objects.get_or_create(name=required_skill)
+                RequiresSkill.objects.create(job=job, skill=skill)
+
         return CreateJob(
             id=job.id,
             name=job.name,
             description=job.description,
             event=job.event,
-            total_positions=job.job.total_positions
+            total_positions=job.total_positions,
+            required_skills=required_skills
         )
 
 
