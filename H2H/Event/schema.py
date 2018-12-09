@@ -27,6 +27,8 @@ class ParticipationType(DjangoObjectType):
 
 class JobType(DjangoObjectType):
     current_users_participation = graphene.Field(ParticipationType)
+    required_skills = graphene.List(graphene.String)
+    exclude_fields = ('requiresskill_set',)
 
     class Meta:
         model = Job
@@ -34,6 +36,9 @@ class JobType(DjangoObjectType):
     def resolve_current_users_participation(self, info, **kwargs):
         participation = Participation.objects.filter(user=info.context.user, job=self)
         return None if not participation else participation.first()
+
+    def resolve_required_skills(self, info, **kwargs):
+        return Skill.objects.filter(requiresskill__job=self)
 
 
 class RequiresSkillType(DjangoObjectType):
@@ -194,12 +199,14 @@ class UpdateJob(graphene.Mutation):
     description = graphene.String()
     event = graphene.Field(EventType)
     total_positions = graphene.Int()
+    required_skills = graphene.List(graphene.String)
 
     class Arguments:
         job_id = graphene.ID(required=True)
         name = graphene.String()
         description = graphene.String()
         total_positions = graphene.Int()
+        required_skills = graphene.List(graphene.String, required=False)
 
     @login_required
     def mutate(self, info, job_id, **kwargs):
@@ -225,12 +232,20 @@ class UpdateJob(graphene.Mutation):
             job.total_positions = total_positions
 
         job.save()
+
+        required_skills = kwargs.get("required_skills", None)
+        if required_skills:
+            for required_skill in required_skills:
+                skill, created = Skill.objects.get_or_create(name=required_skill)
+                RequiresSkill.objects.create(job=job, skill=skill)
+
         return UpdateJob(
             id=job.id,
             name=job.name,
             description=job.description,
             event=job.event,
-            total_positions=job.total_positions
+            total_positions=job.total_positions,
+            required_skills=required_skills
         )
 
 
