@@ -51,7 +51,10 @@ class ProfileType(DjangoObjectType):
 
 # create user and profile
 class CreateUser(graphene.Mutation):
-    user = graphene.Field(UserType)
+    id = graphene.ID()
+    username = graphene.String()
+    email = graphene.String()
+    profile = graphene.Field(ProfileType)
 
     class Arguments:
         username = graphene.String(required=True)
@@ -74,12 +77,20 @@ class CreateUser(graphene.Mutation):
             user.profile.location = Location.objects.get(id=location_id)
         user.profile.save()
 
-        return CreateUser(user=user)
+        return CreateUser(
+            id=user.id,
+            username=user.username,
+            email=user.email,
+            profile=user.profile
+        )
 
 
 # update user and profile
 class UpdateUser(graphene.Mutation):
-    user = graphene.Field(UserType)
+    id = graphene.ID()
+    username = graphene.String()
+    email = graphene.String()
+    profile = graphene.Field(ProfileType)
 
     class Arguments:
         email = graphene.String()
@@ -100,25 +111,33 @@ class UpdateUser(graphene.Mutation):
             user.profile.location = location
         user.save()
         user.profile.save()
-        return UpdateUser(user=user)
+        return UpdateUser(
+            id=user.id,
+            username=user.username,
+            email=user.email,
+            profile=user.profile
+        )
 
 
 # delete user and profile
 class DeleteUser(graphene.Mutation):
     """Profile will be deleted automatically (CASCADE)"""
-    user = graphene.Field(UserType)
+    id = graphene.ID()
 
     @login_required
     def mutate(self, info):
         user = info.context.user
+        user_id = user.id
         user.delete()
-        return DeleteUser(user=user)
+        return DeleteUser(id=user_id)
 
 
 # create skill
 class CreateSkill(graphene.Mutation):
     # TODO: make it impossible to create multiple hasskills
-    skill = graphene.Field(SkillType)
+    id = graphene.ID()
+    name = graphene.String()
+    created = graphene.Boolean()
 
     class Arguments:
         name = graphene.String()
@@ -127,13 +146,17 @@ class CreateSkill(graphene.Mutation):
     def mutate(self, info, name):
         skill, created = Skill.objects.get_or_create(name=name)
         HasSkill.objects.create(user=info.context.user, skill=skill)
-        return CreateSkill(skill=skill)
+        return CreateSkill(
+            id=skill.id,
+            name=skill.name,
+            created=created
+        )
 
 
 # delete has_skill
 class DeleteSkill(graphene.Mutation):
     """Deletes only the HasSkill"""
-    skill = graphene.Field(SkillType)
+    has_skill_id = graphene.ID()
 
     class Arguments:
         skill_id = graphene.ID()
@@ -142,8 +165,9 @@ class DeleteSkill(graphene.Mutation):
     def mutate(self, info, skill_id):
         skill = Skill.objects.get(id=skill_id)
         has_skill = HasSkill.objects.get(user=info.context.user, skill=skill)
+        has_skill_id = has_skill.id
         has_skill.delete()
-        return DeleteSkill(skill=skill)
+        return DeleteSkill(has_skill_id=has_skill_id)
 
 
 class CreateFavourite(graphene.Mutation):

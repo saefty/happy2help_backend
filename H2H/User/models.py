@@ -40,6 +40,9 @@ class Favourite(models.Model):
     event = models.ForeignKey('Event.Event', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = ("event", "user")
+
     def __str__(self):
         return str(self.user) + ' likes ' + str(self.event)
 

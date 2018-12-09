@@ -12,7 +12,10 @@ class LocationType(DjangoObjectType):
 
 
 class CreateLocation(graphene.Mutation):
-    location = graphene.Field(LocationType)
+    id = graphene.ID()
+    latitude = graphene.Float()
+    longitude = graphene.Float()
+    name = graphene.String()
 
     class Arguments:
         latitude = graphene.Float(required=True)
@@ -22,11 +25,19 @@ class CreateLocation(graphene.Mutation):
     @login_required
     def mutate(self, info, latitude, longitude, name):
         location = Location.objects.create(latitude=latitude, longitude=longitude, name=name)
-        return CreateLocation(location=location)
+        return CreateLocation(
+            id=location.id,
+            latitude=location.latitude,
+            longitude=location.longitude,
+            name=location.name
+        )
 
 
 class UpdateLocation(graphene.Mutation):
-    location = graphene.Field(LocationType)
+    id = graphene.ID()
+    latitude = graphene.Float()
+    longitude = graphene.Float()
+    name = graphene.String()
 
     class Arguments:
         location_id = graphene.ID(required=True)
@@ -44,7 +55,12 @@ class UpdateLocation(graphene.Mutation):
         if kwargs.get('name', None):
             location.latitude = kwargs['name']
         location.save()
-        return UpdateLocation(location=location)
+        return UpdateLocation(
+            id=location.id,
+            latitude=location.latitude,
+            longitude=location.longitude,
+            name=location.name
+        )
 
 
 # Queries
