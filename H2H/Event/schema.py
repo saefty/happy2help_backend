@@ -169,7 +169,7 @@ class CreateJob(graphene.Mutation):
             name=job.name,
             description=job.description,
             event=job.event,
-            total_positions=job.job.total_positions
+            total_positions=job.total_positions
         )
 
 
