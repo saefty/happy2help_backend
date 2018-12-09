@@ -12,7 +12,11 @@ class OrganisationType(DjangoObjectType):
 
 
 class CreateOrganisation(graphene.Mutation):
-    organisation = graphene.Field(OrganisationType)
+    id = graphene.ID()
+    name = graphene.String()
+    description = graphene.String()
+    admin = graphene.Field("User.schema.UserType")
+    members = graphene.List("User.schema.UserType")
 
     class Arguments:
         name = graphene.String(required=True)
@@ -28,11 +32,21 @@ class CreateOrganisation(graphene.Mutation):
         organisation.save()
         organisation.members.add(info.context.user)
 
-        return CreateOrganisation(organisation=organisation)
+        return CreateOrganisation(
+            id=organisation.id,
+            name=organisation.name,
+            description=organisation.description,
+            admin=organisation.admin,
+            members=organisation.members
+        )
 
 
 class UpdateOrganisation(graphene.Mutation):
-    organisation = graphene.Field(OrganisationType)
+    id = graphene.ID()
+    name = graphene.String()
+    description = graphene.String()
+    admin = graphene.Field("User.schema.UserType")
+    members = graphene.List("User.schema.UserType")
 
     class Arguments:
         id = graphene.ID(required=True)
@@ -64,25 +78,31 @@ class UpdateOrganisation(graphene.Mutation):
 
         organisation.save()
 
-        return UpdateOrganisation(organisation=organisation)
+        return UpdateOrganisation(
+            id=organisation.id,
+            name=organisation.name,
+            description=organisation.description,
+            admin=organisation.admin,
+            members=organisation.members
+        )
 
 
 class DeleteOrganisation(graphene.Mutation):
-    organisation = graphene.Field(OrganisationType)
+    id = graphene.ID()
 
     class Arguments:
-        id = graphene.ID(required=True)
+        organisation_id = graphene.ID(required=True)
 
     @login_required
-    def mutate(self, info, id):
+    def mutate(self, info, organisation_id):
         user = info.context.user
-        organisation = Organisation.objects.get(pk=id)
+        organisation = Organisation.objects.get(id=organisation_id)
 
         if user != organisation.admin:
             raise Exception('You have to be the admin of this organisation to delete it')
 
         organisation.delete()
-        return DeleteOrganisation(organisation)
+        return DeleteOrganisation(id=organisation_id)
 
 
 # Queries
