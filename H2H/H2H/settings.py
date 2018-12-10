@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'Event',
     'Location',
     'Feedback',
+    'QR_Code',
 ]
 
 GRAPHENE = {

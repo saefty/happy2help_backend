@@ -105,6 +105,14 @@ class Participation(models.Model):
         return str(self.user) + ' attends ' + str(self.job)
 
 
+class RequiresSkill(models.Model):
+    job = models.ForeignKey(Job, on_delete=models.CASCADE)
+    skill = models.ForeignKey("User.Skill", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.job) + " requires skill " + str(self.skill)
+
+
 @receiver(post_delete, sender=Event)
 def delete_location_for_event(sender, instance, *args, **kwargs):
     if instance.location:

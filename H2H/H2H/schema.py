@@ -1,5 +1,6 @@
 import graphene
 
+import QR_Code.schema
 import User.schema
 import Event.schema
 import Organisation.schema
@@ -13,9 +14,11 @@ class Query(
     Organisation.schema.Query,
     Location.schema.Query,
     Feedback.schema.Query,
+    QR_Code.schema.Query,
     graphene.ObjectType
 ):
     pass
+
 
 class Mutation(
     User.schema.Mutation,
@@ -23,6 +26,7 @@ class Mutation(
     Organisation.schema.Mutation,
     Location.schema.Mutation,
     Feedback.schema.Mutation,
+    QR_Code.schema.Mutation,
     graphene.ObjectType
 ):
     pass
