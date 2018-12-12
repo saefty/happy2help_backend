@@ -1,5 +1,8 @@
+import cloudinary
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 
 from Organisation.models import Organisation
 from Event.models import Event
@@ -14,3 +17,8 @@ class Image(models.Model):
 
     def __str__(self):
         return self.public_id
+
+
+@receiver(post_delete, sender=Image)
+def delete_cloud_image(sender, instance, *args, **kwargs):
+    cloudinary.uploader.destroy(instance.public_id)
