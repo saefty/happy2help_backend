@@ -6,6 +6,7 @@ import Event.schema
 import Organisation.schema
 import Location.schema
 import Feedback.schema
+import Image.schema
 
 
 class Query(
@@ -15,6 +16,7 @@ class Query(
     Location.schema.Query,
     Feedback.schema.Query,
     QR_Code.schema.Query,
+    Image.schema.Query,
     graphene.ObjectType
 ):
     pass
@@ -27,6 +29,7 @@ class Mutation(
     Location.schema.Mutation,
     Feedback.schema.Mutation,
     QR_Code.schema.Mutation,
+    Image.schema.Mutation,
     graphene.ObjectType
 ):
     pass
