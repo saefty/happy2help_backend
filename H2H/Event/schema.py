@@ -431,9 +431,20 @@ class DeleteEvent(graphene.Mutation):
         return DeleteEvent(id=event_id)
 
 
+class SortInputType(graphene.InputObjectType):
+    field = graphene.String()
+    desc = graphene.Boolean()
+
+
+class FilterInputType(graphene.InputObjectType):
+    field = graphene.String()
+    query = graphene.String()
+
+
+
 class Query(graphene.ObjectType):
     event = graphene.Field(EventType, id=graphene.ID())
-    events = graphene.List(EventType)
+    events = graphene.List(EventType, sorting=SortInputType(), filtering=FilterInputType())
     events_by_coordinates = graphene.List(
         EventType,
         ul_longitude=graphene.Float(),
@@ -448,8 +459,24 @@ class Query(graphene.ObjectType):
     def resolve_event(self, info, id):
         return Event.objects.get(id=id)
 
-    def resolve_events(self, info):
-        return Event.objects.filter(end__gt = timezone.now())
+    def resolve_events(self, info, **kwargs):
+        events = Event.objects.filter(end__gt = timezone.now())
+
+        filtering = kwargs.get("filtering", None)
+        if filtering:
+            field = filtering.get("field", None)
+            if field:
+                query = filtering.get("query", "")
+                events = events.filter(**{field + "__icontains":query})
+
+        sorting = kwargs.get("sorting", None)
+        if sorting:
+            field = sorting.get("field", None)
+            if field:
+                desc = sorting.get("desc", False)
+                minus = "-" if desc else ""
+                events = events.order_by(minus + field)
+        return events
 
     def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):
         """
