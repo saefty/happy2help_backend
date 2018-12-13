@@ -28,7 +28,7 @@ class UploadImage(graphene.Mutation):
     url = graphene.String()
     organisation = graphene.Field('Organisation.schema.OrganisationType')
     event = graphene.Field('Event.schema.EventType')
-    user = graphene.Field('User.schema.UserType') 
+    user = graphene.Field('User.schema.UserType')
 
     class Arguments:
         image = Upload(required=True)
