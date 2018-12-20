@@ -127,7 +127,7 @@ class UpdateParticipation(graphene.Mutation):
                 rating=participation.rating
             )
 
-        if state in (3, 4):  # 3 = declined, 4 = accepted
+        if state in (3, 4, 1):  # 3 = declined, 4 = accepted, 1 = participated
             if event_creator != user:
                 raise Exception("You need to be the event creator")
             if state == 4 and job.deleted_at:
