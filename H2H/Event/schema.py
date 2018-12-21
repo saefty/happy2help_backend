@@ -1,10 +1,13 @@
+import re
+
 import graphene
+from django.db.models import Q
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from django.utils import timezone
 
-
 from Location.models import Location
+from Location.schema import LocationInputType
 from User.models import Skill
 from .models import Event, Job, Participation, RequiresSkill
 from Organisation.models import Organisation
@@ -321,7 +324,8 @@ class CreateEvent(graphene.Mutation):
                     latitude=location_lat,
                     longitude=location_lon
                 )
-            else: raise Exception("Please provide: location_name, location_lat, location_lon OR location_id !")
+            else:
+                raise Exception("Please provide: location_name, location_lat, location_lon OR location_id !")
 
         # add organisation if given
         organisation_id = kwargs.get('organisation_id', None)
@@ -434,17 +438,16 @@ class DeleteEvent(graphene.Mutation):
 class SortInputType(graphene.InputObjectType):
     field = graphene.String()
     desc = graphene.Boolean()
-
-
-class FilterInputType(graphene.InputObjectType):
-    field = graphene.String()
-    query = graphene.String()
-
+    distance = LocationInputType()
 
 
 class Query(graphene.ObjectType):
     event = graphene.Field(EventType, id=graphene.ID())
-    events = graphene.List(EventType, sorting=SortInputType(), filtering=FilterInputType())
+    events = graphene.List(
+        EventType,
+        sorting=SortInputType(),
+        search=graphene.String()
+    )
     events_by_coordinates = graphene.List(
         EventType,
         ul_longitude=graphene.Float(),
@@ -460,22 +463,28 @@ class Query(graphene.ObjectType):
         return Event.objects.get(id=id)
 
     def resolve_events(self, info, **kwargs):
-        events = Event.objects.filter(end__gt = timezone.now())
+        events = Event.objects.filter(end__gt=timezone.now())
 
-        filtering = kwargs.get("filtering", None)
-        if filtering:
-            field = filtering.get("field", None)
-            if field:
-                query = filtering.get("query", "")
-                events = events.filter(**{field + "__icontains":query})
+        search = kwargs.get("search", None)
+        if search:
+            words = re.split(r'\W+', search)
+            q = Q()
+            for word in words:
+                q &= (Q(name__icontains=word) | Q(description__icontains=word))
+            events = events.filter(q)
 
         sorting = kwargs.get("sorting", None)
         if sorting:
             field = sorting.get("field", None)
+            distance = sorting.get("distance", None)
+            if field and distance:
+                raise Exception("Cannot sort by field and distance at the same time!")
             if field:
                 desc = sorting.get("desc", False)
                 minus = "-" if desc else ""
                 events = events.order_by(minus + field)
+            if distance:
+                events = events.order_by_distance(distance)
         return events
 
     def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):
@@ -485,7 +494,7 @@ class Query(graphene.ObjectType):
         lr = lower right
         """
         return Event.objects.filter(
-            end__gt = timezone.now(),
+            end__gt=timezone.now(),
             location__latitude__gte=ul_latitude,
             location__longitude__gte=ul_longitude,
             location__latitude__lte=lr_latitude,
