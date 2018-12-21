@@ -50,7 +50,7 @@ class SoftDeletionModel(models.Model):
 
 
 class EventQuerySet(models.QuerySet):
-    def near(self, other):
+    def order_by_distance(self, other):
         all_locations = [e.location for e in self]
         sorted_events = []
         for location in all_locations:
@@ -68,8 +68,8 @@ class EventManager(models.Manager):
     def get_queryset(self):
         return EventQuerySet(self.model, using=self._db)
 
-    def near(self, other):
-        return self.get_queryset().near(other)
+    def order_by_distance(self, other):
+        return self.get_queryset().order_by_distance(other)
 
 
 class Event(models.Model):

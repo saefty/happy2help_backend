@@ -484,7 +484,7 @@ class Query(graphene.ObjectType):
                 minus = "-" if desc else ""
                 events = events.order_by(minus + field)
             if distance:
-                events = events.near(distance)
+                events = events.order_by_distance(distance)
         return events
 
     def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):
