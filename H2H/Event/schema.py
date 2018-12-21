@@ -5,6 +5,7 @@ from django.utils import timezone
 
 
 from Location.models import Location
+from Location.schema import LocationInputType
 from User.models import Skill
 from .models import Event, Job, Participation, RequiresSkill
 from Organisation.models import Organisation
@@ -434,6 +435,7 @@ class DeleteEvent(graphene.Mutation):
 class SortInputType(graphene.InputObjectType):
     field = graphene.String()
     desc = graphene.Boolean()
+    distance = LocationInputType()
 
 
 class FilterInputType(graphene.InputObjectType):
@@ -444,7 +446,11 @@ class FilterInputType(graphene.InputObjectType):
 
 class Query(graphene.ObjectType):
     event = graphene.Field(EventType, id=graphene.ID())
-    events = graphene.List(EventType, sorting=SortInputType(), filtering=FilterInputType())
+    events = graphene.List(
+        EventType,
+        sorting=SortInputType(),
+        filtering=FilterInputType(),
+    )
     events_by_coordinates = graphene.List(
         EventType,
         ul_longitude=graphene.Float(),
@@ -467,15 +473,20 @@ class Query(graphene.ObjectType):
             field = filtering.get("field", None)
             if field:
                 query = filtering.get("query", "")
-                events = events.filter(**{field + "__icontains":query})
+                events = events.filter(**{field + "__icontains": query})
 
         sorting = kwargs.get("sorting", None)
         if sorting:
             field = sorting.get("field", None)
+            distance = sorting.get("distance", None)
+            if field and distance:
+                raise Exception("Cannot sort by field and distance at the same time!")
             if field:
                 desc = sorting.get("desc", False)
                 minus = "-" if desc else ""
                 events = events.order_by(minus + field)
+            if distance:
+                events = events.near(distance)
         return events
 
     def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):
