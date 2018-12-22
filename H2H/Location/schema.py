@@ -5,10 +5,20 @@ from graphql_jwt.decorators import login_required
 from .models import Location
 
 
+class LocationInputType(graphene.InputObjectType):
+    latitude = graphene.Float()
+    longitude = graphene.Float()
+
+
 class LocationType(DjangoObjectType):
+    distance = graphene.Float(to=LocationInputType())
+
     class Meta:
         model = Location
         exclude_fields = ('profile', 'event',)
+
+    def resolve_distance(self, info, to):
+        return self.distance(to)
 
 
 class CreateLocation(graphene.Mutation):

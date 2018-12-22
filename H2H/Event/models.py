@@ -7,6 +7,8 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
+from Location.models import Location
+
 
 class SoftDeletionQuerySet(QuerySet):
     def delete(self):
@@ -47,6 +49,29 @@ class SoftDeletionModel(models.Model):
         super(SoftDeletionModel, self).delete()
 
 
+class EventQuerySet(models.QuerySet):
+    def order_by_distance(self, other):
+        all_locations = [e.location for e in self]
+        sorted_events = []
+        for location in all_locations:
+            try:
+                event = location.event
+            except Location.event.RelatedObjectDoesNotExist:
+                event = None
+            if event:
+                sorted_events.append((location.distance(other), event))
+        sorted_events.sort(key=lambda d: d[0])  # sort by distance
+        return [l[1] for l in sorted_events]
+
+
+class EventManager(models.Manager):
+    def get_queryset(self):
+        return EventQuerySet(self.model, using=self._db)
+
+    def order_by_distance(self, other):
+        return self.get_queryset().order_by_distance(other)
+
+
 class Event(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
@@ -56,6 +81,8 @@ class Event(models.Model):
     organisation = models.ForeignKey('Organisation.Organisation', on_delete=models.CASCADE, blank=True, null=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
     location = models.OneToOneField('Location.Location', on_delete=models.PROTECT, null=True)
+
+    objects = EventManager()
 
     def save(self, *args, **kwargs):
         if self.end < self.start:
@@ -68,9 +95,6 @@ class Event(models.Model):
 
 
 class Job(SoftDeletionModel):
-    # class Meta:
-    #     unique_together = ('name', 'event')
-
     name = models.CharField(max_length=200)
     description = models.TextField(null=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)

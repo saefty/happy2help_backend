@@ -1,3 +1,4 @@
+import geopy.distance
 from django.db import models
 
 
@@ -9,3 +10,8 @@ class Location(models.Model):
 
     def __str__(self):
         return self.name
+
+    def distance(self, other):
+        own_loc = (self.latitude, self.longitude)
+        other_loc = (other.latitude, other.longitude)
+        return geopy.distance.vincenty(own_loc, other_loc).km
