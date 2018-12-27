@@ -61,9 +61,9 @@ class UpdateLocation(graphene.Mutation):
         if kwargs.get('latitude', None):
             location.latitude = kwargs['latitude']
         if kwargs.get('longitude', None):
-            location.latitude = kwargs['longitude']
+            location.longitude = kwargs['longitude']
         if kwargs.get('name', None):
-            location.latitude = kwargs['name']
+            location.name = kwargs['name']
         location.save()
         return UpdateLocation(
             id=location.id,
