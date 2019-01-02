@@ -2,6 +2,7 @@ import graphene
 import graphql_jwt
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.postgres.search import TrigramSimilarity
 from django.core.validators import validate_email
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
@@ -217,9 +218,16 @@ class CreateFavourite(graphene.Mutation):
 
 class Query(graphene.ObjectType):
     user = graphene.Field(UserType)
+    skill_search = graphene.List(SkillType, query=graphene.String())
 
     def resolve_user(self, info):
         return User.objects.get(id=info.context.user.id)
+
+    def resolve_skill_search(self, info, query):
+        skills = Skill.objects.annotate(similarity=TrigramSimilarity('name', query)) \
+            .filter(similarity__gt=0.1) \
+            .order_by('-similarity')[:5]
+        return skills
 
 
 class Mutation(graphene.AbstractType):
