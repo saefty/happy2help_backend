@@ -1,7 +1,7 @@
 import re
 
 import graphene
-from django.db.models import Q
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from django.utils import timezone
@@ -466,12 +466,27 @@ class Query(graphene.ObjectType):
         events = Event.objects.filter(end__gt=timezone.now())
 
         search = kwargs.get("search", None)
-        if search:
-            words = re.split(r'\W+', search)
-            q = Q()
-            for word in words:
-                q &= (Q(name__icontains=word) | Q(description__icontains=word))
-            events = events.filter(q)
+        if search:  # search with postgres 'rank' functionality and return top 10 results
+            vector = SearchVector(
+                'name',
+                'description',
+                'job__name',
+                'job__description',
+                'location__name',
+                'organisation__name'
+            )
+
+            query = SearchQuery(search, config='german')  # use german stop words
+
+            # for explanation see this: https://stackoverflow.com/a/30088450
+            # select relevant ids first
+            event_ids = events.values('id') \
+                .annotate(rank=SearchRank(vector, query)) \
+                .filter(rank__gt=0.0) \
+                .order_by('-rank') \
+                .values_list('id', flat=True)
+            # then get the right events. django turns all of this into a single query with multiple joins
+            events = Event.objects.filter(id__in=event_ids)[:10]
 
         sorting = kwargs.get("sorting", None)
         if sorting:
