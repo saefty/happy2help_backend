@@ -51,7 +51,7 @@ class SoftDeletionModel(models.Model):
 
 class EventQuerySet(models.QuerySet):
     def order_by_distance(self, other):
-        all_locations = [e.location for e in self]
+        all_locations = [e.location for e in self]  # not pretty but we have no geodjango to fix this
         sorted_events = []
         for location in all_locations:
             try:
@@ -61,7 +61,7 @@ class EventQuerySet(models.QuerySet):
             if event:
                 sorted_events.append((location.distance(other), event))
         sorted_events.sort(key=lambda d: d[0])  # sort by distance
-        return [l[1] for l in sorted_events]
+        return [e[1] for e in sorted_events]
 
 
 class EventManager(models.Manager):
