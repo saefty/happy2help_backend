@@ -8,7 +8,7 @@ ALLOWED_HOSTS = ['h2h-dev.taher.io', 'localhost', '127.0.0.1', '0.0.0.0']
 
 DATABASES = {
    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME':  os.getenv('DB_NAME', None),
         'USER':  os.getenv('DB_USER', None),
         'PASSWORD': os.getenv('DB_PASSWORD', None),
