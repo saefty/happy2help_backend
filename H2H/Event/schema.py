@@ -1,7 +1,9 @@
 import re
 
 import graphene
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, TrigramSimilarity
+from django.db.models import Sum, Value, Q, Case, When
+from django.db.models.functions import Greatest, Coalesce
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from django.utils import timezone
@@ -467,26 +469,31 @@ class Query(graphene.ObjectType):
 
         search = kwargs.get("search", None)
         if search:  # search with postgres 'rank' functionality and return top 10 results
-            vector = SearchVector(
-                'name',
-                'description',
-                'job__name',
-                'job__description',
-                'location__name',
-                'organisation__name'
-            )
+            vector = SearchVector('name', weight='A', config='german') + \
+                SearchVector('description', weight='B', config='german') + \
+                SearchVector('job__name', weigth='C', config='german') + \
+                SearchVector('job__description', weight='C', config='german') + \
+                SearchVector('location__name', weight='C', config='german') + \
+                SearchVector('organisation__name', weight='D', config='german') + \
+                SearchVector('organisation__description', weight='D', config='german')
 
             query = SearchQuery(search, config='german')  # use german stop words
 
-            # for explanation see this: https://stackoverflow.com/a/30088450
-            # select relevant ids first
-            event_ids = events.values('id') \
-                .annotate(rank=SearchRank(vector, query)) \
-                .filter(rank__gt=0.0) \
-                .order_by('-rank') \
-                .values_list('id', flat=True)
-            # then get the right events. django turns all of this into a single query with multiple joins
-            events = Event.objects.filter(id__in=event_ids)[:10]
+            event_ids = events.annotate(
+                rank=SearchRank(vector, query),
+                similarity=Greatest(
+                    TrigramSimilarity('name', search),
+                    TrigramSimilarity('description', search),
+                    TrigramSimilarity('job__name', search),
+                    TrigramSimilarity('job__description', search),
+                    TrigramSimilarity('location__name', search),
+                    TrigramSimilarity('organisation__name', search),
+                    TrigramSimilarity('organisation__description', search)),
+                best_score=Greatest("rank", "similarity")
+            ).filter(best_score__gt=0.0).order_by('-best_score').values_list("id", flat=True)
+
+            preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(event_ids)])
+            events = Event.objects.all().filter(id__in=event_ids).order_by(preserved)
 
         sorting = kwargs.get("sorting", None)
         if sorting:
