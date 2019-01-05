@@ -112,7 +112,7 @@ class UpdateParticipation(graphene.Mutation):
             return UpdateParticipation(
                 id=participation.id,
                 job=job,
-                user=participation.user,
+                user=user,
                 state=participation.state,
                 rating=participation.rating
             )
@@ -127,7 +127,7 @@ class UpdateParticipation(graphene.Mutation):
             return UpdateParticipation(
                 id=participation.id,
                 job=job,
-                user=participation.user,
+                user=user,
                 state=participation.state,
                 rating=participation.rating
             )
