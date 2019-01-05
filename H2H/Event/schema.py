@@ -112,7 +112,7 @@ class UpdateParticipation(graphene.Mutation):
             return UpdateParticipation(
                 id=participation.id,
                 job=job,
-                user=user,
+                user=participation.user,
                 state=participation.state,
                 rating=participation.rating
             )
@@ -127,7 +127,7 @@ class UpdateParticipation(graphene.Mutation):
             return UpdateParticipation(
                 id=participation.id,
                 job=job,
-                user=user,
+                user=participation.user,
                 state=participation.state,
                 rating=participation.rating
             )
@@ -137,12 +137,20 @@ class UpdateParticipation(graphene.Mutation):
                 raise Exception("You need to be the event creator")
             if state == 4 and job.deleted_at:
                 raise Exception("You cannot accept a user for a removed job")
+            if state == 1:
+                if participation.state == 1:
+                    raise Exception("This user already participated")
+                if participation.state in (3, 5):
+                    raise Exception("This user was either declined already or cancelled the participation")
+                participation.user.profile.credit_points += 5
+                participation.user.profile.save()
+
             participation.state = state
             participation.save()
             return UpdateParticipation(
                 id=participation.id,
                 job=job,
-                user=user,
+                user=participation.user,
                 state=participation.state,
                 rating=participation.rating
             )
