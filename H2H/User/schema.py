@@ -37,12 +37,16 @@ class HasSkillType(DjangoObjectType):
 
 class UserType(DjangoObjectType):
     skills = graphene.List(SkillType)
+    event_set = graphene.List(EventType)
 
     class Meta:
         model = User
 
     def resolve_skills(self, info):
         return [s.skill for s in HasSkill.objects.filter(user=self)]
+
+    def resolve_event_set(self, info):
+        return [event for event in Event.objects.filter(creator=self, organisation=None)]
 
 
 class ProfileType(DjangoObjectType):
