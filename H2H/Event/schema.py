@@ -507,7 +507,6 @@ class Query(graphene.ObjectType):
 
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(event_ids)])
             events = Event.objects.all().filter(id__in=event_ids).order_by(preserved)
-            print(events.query)
 
         # Sort Events
         sorting = kwargs.get("sorting", None)
@@ -534,7 +533,6 @@ class Query(graphene.ObjectType):
             required_skills = filtering.get("required_skills", None)
             if required_skills:
                 events = events.filter(job__requiresskill__skill__name__in=required_skills).distinct()
-        print(events.query)
         return events
 
     def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):
