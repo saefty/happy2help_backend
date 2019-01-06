@@ -89,14 +89,14 @@ class AddMembers(graphene.Mutation):
         user_ids = graphene.List(graphene.NonNull(graphene.ID), required=True)
 
     @login_required
-    def mutate(self, info, **kwargs):
+    def mutate(self, info, organisation_id, user_ids):
         user = info.context.user
-        organisation = Organisation.objects.get(pk=kwargs.get('organisation_id'))
+        organisation = Organisation.objects.get(pk=organisation_id)
 
         if user != organisation.admin:
             raise Exception('You have to be the admin of this organisation to add members to it')
 
-        for id in kwargs.get('user_ids'):
+        for id in user_ids:
             organisation.members.add(User.objects.get(pk=id))
         
         organisation.save()
@@ -122,14 +122,14 @@ class RemoveMembers(graphene.Mutation):
         user_ids = graphene.List(graphene.NonNull(graphene.ID), required=True)
 
     @login_required
-    def mutate(self, info, **kwargs):
+    def mutate(self, info, organisation_id, user_ids):
         user = info.context.user
-        organisation = Organisation.objects.get(pk=kwargs.get('organisation_id'))
+        organisation = Organisation.objects.get(pk=organisation_id)
 
         if user != organisation.admin:
             raise Exception('You have to be the admin of this organisation to delete its members')
 
-        for id in kwargs.get('user_ids'):
+        for id in user_ids:
             to_be_deleted = User.objects.get(pk=id)
             if to_be_deleted != organisation.admin:
                 organisation.members.remove(to_be_deleted)
