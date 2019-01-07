@@ -522,6 +522,7 @@ class Query(graphene.ObjectType):
                 # filter by relevant ids
                 events = Event.objects.all().filter(id__in=event_ids).order_by(preserved)
             else:
+                # nothing relevant found. return none
                 return Event.objects.none()
 
         # Sort Events
