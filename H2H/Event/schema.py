@@ -482,6 +482,8 @@ class Query(graphene.ObjectType):
         # Search Events
         search = kwargs.get("search", None)
         if search:
+            # fields to consider with weighing and stop words
+            # weights are debatable
             vector = SearchVector('name', weight='A', config='german') + \
                 SearchVector('description', weight='B', config='german') + \
                 SearchVector('job__name', weigth='C', config='german') + \
@@ -492,6 +494,7 @@ class Query(graphene.ObjectType):
 
             query = SearchQuery(search, config='german')  # use german stop words
 
+            # get the relevant event ids first. uses trigram similarity and search rank
             event_ids = events.annotate(
                 rank=SearchRank(vector, query),
                 similarity=Greatest(
@@ -502,10 +505,12 @@ class Query(graphene.ObjectType):
                     TrigramSimilarity('location__name', search),
                     TrigramSimilarity('organisation__name', search),
                     TrigramSimilarity('organisation__description', search)),
-                best_score=Greatest("rank", "similarity")
+                best_score=Greatest("rank", "similarity")  # open for debate. maybe just use (rank + similarity) / 2
             ).filter(best_score__gt=0.0).order_by('-best_score').values_list("id", flat=True)
 
+            # keep the ordering of the relevant ids
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(event_ids)])
+            # filter by relevant ids
             events = Event.objects.all().filter(id__in=event_ids).order_by(preserved)
 
         # Sort Events
@@ -515,24 +520,37 @@ class Query(graphene.ObjectType):
             distance = sorting.get("distance", None)
             if field and distance:
                 raise Exception("Cannot sort by field and distance at the same time!")
+            # sort by field name
             if field:
                 desc = sorting.get("desc", False)
                 minus = "-" if desc else ""
                 events = events.order_by(minus + field)
+            # sort by distance to self
             if distance:
                 events = events.order_by_distance(distance)
 
         # Filter Events
         filtering = kwargs.get("filtering", None)
         if filtering:
+            # has organisation
             by_organisation = filtering.get("by_organisation", None)
             if by_organisation:
                 events = events.filter(organisation__isnull=False)
             elif by_organisation is False:
                 events = events.filter(organisation__isnull=True)
+            # jobs require any of these skills
             required_skills = filtering.get("required_skills", None)
             if required_skills:
                 events = events.filter(job__requiresskill__skill__name__in=required_skills).distinct()
+            # time is between start and/or end
+            timedelta = filtering.get("time", None)
+            if timedelta:
+                start = timedelta.get("start", None)
+                end = timedelta.get("end", None)
+                if start:
+                    events = events.filter(start__gte=start)
+                if end:
+                    events = events.filter(end__lte=end)
         return events
 
     def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):
