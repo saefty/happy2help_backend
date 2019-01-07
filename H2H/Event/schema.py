@@ -2,8 +2,8 @@ import re
 
 import graphene
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, TrigramSimilarity
-from django.db.models import Case, When, F
-from django.db.models.functions import Greatest
+from django.db.models import Case, When, F, Value
+from django.db.models.functions import Greatest, Coalesce
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from django.utils import timezone
@@ -514,12 +514,15 @@ class Query(graphene.ObjectType):
                     TrigramSimilarity('organisation__name', search),
                     TrigramSimilarity('organisation__description', search)),
                 score=(F("rank") + F("similarity")) / 2.  # open for debate.
-            ).filter(score__gt=0.0).order_by('-score').values_list("id", flat=True)
+            ).order_by('-score').filter(score__gt=0.1).values_list("id", flat=True)
 
-            # keep the ordering of the relevant ids
-            preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(event_ids)])
-            # filter by relevant ids
-            events = Event.objects.all().filter(id__in=event_ids).order_by(preserved)
+            if event_ids:
+                # keep the ordering of the relevant ids
+                preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(event_ids)])
+                # filter by relevant ids
+                events = Event.objects.all().filter(id__in=event_ids).order_by(preserved)
+            else:
+                return Event.objects.none()
 
         # Sort Events
         sorting = kwargs.get("sorting", None)
