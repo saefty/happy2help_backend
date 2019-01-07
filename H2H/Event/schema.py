@@ -2,7 +2,7 @@ import re
 
 import graphene
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, TrigramSimilarity
-from django.db.models import Case, When
+from django.db.models import Case, When, F
 from django.db.models.functions import Greatest
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
@@ -513,8 +513,8 @@ class Query(graphene.ObjectType):
                     TrigramSimilarity('location__name', search),
                     TrigramSimilarity('organisation__name', search),
                     TrigramSimilarity('organisation__description', search)),
-                best_score=Greatest("rank", "similarity")  # open for debate. maybe just use (rank + similarity) / 2
-            ).filter(best_score__gt=0.0).order_by('-best_score').values_list("id", flat=True)
+                score=(F("rank") + F("similarity")) / 2.  # open for debate.
+            ).filter(score__gt=0.0).order_by('-score').values_list("id", flat=True)
 
             # keep the ordering of the relevant ids
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(event_ids)])
