@@ -137,12 +137,20 @@ class UpdateParticipation(graphene.Mutation):
                 raise Exception("You need to be the event creator")
             if state == 4 and job.deleted_at:
                 raise Exception("You cannot accept a user for a removed job")
+            if state == 1:
+                if participation.state == 1:
+                    raise Exception("This user already participated")
+                if participation.state in (3, 5):
+                    raise Exception("This user was either declined already or cancelled the participation")
+                participation.user.profile.credit_points += 5
+                participation.user.profile.save()
+
             participation.state = state
             participation.save()
             return UpdateParticipation(
                 id=participation.id,
                 job=job,
-                user=user,
+                user=participation.user,
                 state=participation.state,
                 rating=participation.rating
             )
@@ -443,12 +451,24 @@ class SortInputType(graphene.InputObjectType):
     distance = LocationInputType()
 
 
+class TimeDeltaInputType(graphene.InputObjectType):
+    start = graphene.Date()
+    end = graphene.Date()
+
+
+class FilterInputType(graphene.InputObjectType):
+    by_organisation = graphene.Boolean()
+    required_skills = graphene.List(graphene.String)
+    time = TimeDeltaInputType()
+
+
 class Query(graphene.ObjectType):
     event = graphene.Field(EventType, id=graphene.ID())
     events = graphene.List(
         EventType,
+        search=graphene.String(),
         sorting=SortInputType(),
-        search=graphene.String()
+        filtering=FilterInputType()
     )
     events_by_coordinates = graphene.List(
         EventType,
@@ -467,8 +487,9 @@ class Query(graphene.ObjectType):
     def resolve_events(self, info, **kwargs):
         events = Event.objects.filter(end__gt=timezone.now())
 
+        # Search Events
         search = kwargs.get("search", None)
-        if search:  # search with postgres 'rank' functionality and return top 10 results
+        if search:
             vector = SearchVector('name', weight='A', config='german') + \
                 SearchVector('description', weight='B', config='german') + \
                 SearchVector('job__name', weigth='C', config='german') + \
@@ -495,6 +516,7 @@ class Query(graphene.ObjectType):
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(event_ids)])
             events = Event.objects.all().filter(id__in=event_ids).order_by(preserved)
 
+        # Sort Events
         sorting = kwargs.get("sorting", None)
         if sorting:
             field = sorting.get("field", None)
@@ -507,6 +529,18 @@ class Query(graphene.ObjectType):
                 events = events.order_by(minus + field)
             if distance:
                 events = events.order_by_distance(distance)
+
+        # Filter Events
+        filtering = kwargs.get("filtering", None)
+        if filtering:
+            by_organisation = filtering.get("by_organisation", None)
+            if by_organisation:
+                events = events.filter(organisation__isnull=False)
+            elif by_organisation is False:
+                events = events.filter(organisation__isnull=True)
+            required_skills = filtering.get("required_skills", None)
+            if required_skills:
+                events = events.filter(job__requiresskill__skill__name__in=required_skills).distinct()
         return events
 
     def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):

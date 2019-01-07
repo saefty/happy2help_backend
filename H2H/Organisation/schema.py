@@ -49,16 +49,14 @@ class UpdateOrganisation(graphene.Mutation):
     members = graphene.List("User.schema.UserType")
 
     class Arguments:
-        id = graphene.ID(required=True)
+        organisation_id = graphene.ID(required=True)
         name = graphene.String()
         description = graphene.String()
-        add_member = graphene.ID()
-        delete_member = graphene.ID()
 
     @login_required
     def mutate(self, info, **kwargs):
         user = info.context.user
-        organisation = Organisation.objects.get(pk=kwargs.get('id'))
+        organisation = Organisation.objects.get(pk=kwargs.get('organisation_id'))
 
         if user != organisation.admin:
             raise Exception('You have to be the admin of this organisation to update it')
@@ -67,18 +65,80 @@ class UpdateOrganisation(graphene.Mutation):
             organisation.name = kwargs.get('name', None)
         if kwargs.get('description', None):
             organisation.description = kwargs.get('description', None)
-        if kwargs.get('add_member', None):
-            organisation.members.add(User.objects.get(pk=kwargs.get('add_member')))
-        if kwargs.get('delete_member', None):
-            to_be_deleted = User.objects.get(pk=kwargs.get('delete_member'))
-            if to_be_deleted != organisation.admin:
-                organisation.members.remove(to_be_deleted)
-            else:
-                raise Exception('You cannot remove the admin of an organisation')
 
         organisation.save()
 
         return UpdateOrganisation(
+            id=organisation.id,
+            name=organisation.name,
+            description=organisation.description,
+            admin=organisation.admin,
+            members=organisation.members
+        )
+
+
+class AddMembers(graphene.Mutation):
+    id = graphene.ID()
+    name = graphene.String()
+    description = graphene.String()
+    admin = graphene.Field("User.schema.UserType")
+    members = graphene.List("User.schema.UserType")
+
+    class Arguments:
+        organisation_id = graphene.ID(required=True)
+        user_ids = graphene.List(graphene.NonNull(graphene.ID), required=True)
+
+    @login_required
+    def mutate(self, info, organisation_id, user_ids):
+        user = info.context.user
+        organisation = Organisation.objects.get(pk=organisation_id)
+
+        if user != organisation.admin:
+            raise Exception('You have to be the admin of this organisation to add members to it')
+
+        for id in user_ids:
+            organisation.members.add(User.objects.get(pk=id))
+        
+        organisation.save()
+
+        return AddMembers(
+            id=organisation.id,
+            name=organisation.name,
+            description=organisation.description,
+            admin=organisation.admin,
+            members=organisation.members
+        )
+
+    
+class RemoveMembers(graphene.Mutation):
+    id = graphene.ID()
+    name = graphene.String()
+    description = graphene.String()
+    admin = graphene.Field("User.schema.UserType")
+    members = graphene.List("User.schema.UserType")
+
+    class Arguments:
+        organisation_id = graphene.ID(required=True)
+        user_ids = graphene.List(graphene.NonNull(graphene.ID), required=True)
+
+    @login_required
+    def mutate(self, info, organisation_id, user_ids):
+        user = info.context.user
+        organisation = Organisation.objects.get(pk=organisation_id)
+
+        if user != organisation.admin:
+            raise Exception('You have to be the admin of this organisation to delete its members')
+
+        for id in user_ids:
+            to_be_deleted = User.objects.get(pk=id)
+            if to_be_deleted != organisation.admin:
+                organisation.members.remove(to_be_deleted)
+            else:
+                raise Exception('You cannot remove the admin of an organisation')
+        
+        organisation.save()
+
+        return RemoveMembers(
             id=organisation.id,
             name=organisation.name,
             description=organisation.description,
@@ -120,4 +180,6 @@ class Query(graphene.ObjectType):
 class Mutation(graphene.AbstractType):
     create_organisation = CreateOrganisation.Field()
     update_organisation = UpdateOrganisation.Field()
+    add_members = AddMembers.Field()
+    remove_members = RemoveMembers.Field()
     delete_organisation = DeleteOrganisation.Field()
