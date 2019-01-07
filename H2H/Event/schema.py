@@ -2,8 +2,8 @@ import re
 
 import graphene
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, TrigramSimilarity
-from django.db.models import Case, When, F, Value
-from django.db.models.functions import Greatest, Coalesce
+from django.db.models import Case, When, F
+from django.db.models.functions import Greatest
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from django.utils import timezone
@@ -522,6 +522,7 @@ class Query(graphene.ObjectType):
                 # filter by relevant ids
                 events = Event.objects.all().filter(id__in=event_ids).order_by(preserved)
             else:
+                # nothing relevant found. return none
                 return Event.objects.none()
 
         # Sort Events
