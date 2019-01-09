@@ -143,6 +143,12 @@ def delete_location_for_event(sender, instance, *args, **kwargs):
         instance.location.delete()
 
 
+@receiver(post_save, sender=Event)
+def create_default_job_for_event(sender, instance, created, **kwargs):
+    if created:
+        Job.objects.create(name=instance.name, description=instance.description, event=instance)
+
+
 @receiver(post_delete, sender=Job)
 def set_participations_to_cancelled(sender, instance, *args, **kwargs):
     for participation in instance.participation_set.all():
