@@ -290,6 +290,7 @@ class DeleteJob(graphene.Mutation):
 
 
 class JobInputType(graphene.InputObjectType):
+    id = graphene.ID()
     name = graphene.String()
     description = graphene.String()
     total_positions = graphene.Int()
@@ -381,6 +382,9 @@ class CreateEvent(graphene.Mutation):
                     for skill in required_skills:
                         skill, created = Skill.objects.get_or_create(name=skill)
                         RequiresSkill.objects.create(skill=skill, job=new_job)
+        # create default job
+        else:
+            Job.objects.create(name=event.name, description=event.description, event=event)
 
         return CreateEvent(
             id=event.id,
@@ -404,6 +408,7 @@ class UpdateEvent(graphene.Mutation):
     organisation = graphene.Field("Organisation.schema.OrganisationType")
     creator = graphene.Field("User.schema.UserType")
     location = graphene.Field("Location.schema.LocationType")
+    jobs = graphene.List(JobType)
 
     class Arguments:
         event_id = graphene.ID(required=True)
@@ -411,9 +416,10 @@ class UpdateEvent(graphene.Mutation):
         description = graphene.String()
         start = graphene.DateTime()
         end = graphene.DateTime()
+        jobs = graphene.List(JobInputType)
 
     @login_required
-    def mutate(self, info, event_id, **kwargs):
+    def mutate(self, info, event_id, jobs, **kwargs):
         user = info.context.user
         event = Event.objects.get(id=event_id)
         organisation = event.organisation
@@ -434,6 +440,35 @@ class UpdateEvent(graphene.Mutation):
             event.end = kwargs['end']
 
         event.save()
+
+        # delete job if id not in 'jobs'
+        job_ids = [job.id for job in jobs]
+        jobs_to_delete = Job.objects.exclude(id__in=job_ids, event=event)
+        if jobs_to_delete == event.job_set:
+            raise Exception("You cannot delete all jobs. There has to be at least one job per event!")
+        jobs_to_delete.delete()
+
+        # jobs is required!
+        for job in jobs:
+            # if id is given, update the job
+            if job.id:
+                edit_job = Job.objects.get(id=job.id)
+                if job.name:
+                    edit_job.name = job.name
+                if job.description:
+                    edit_job.description = job.description
+                if job.required_skills:
+                    pass
+                    # TODO: update/delete RequiresSkill
+                edit_job.save()
+            # create new job
+            else:
+                Job.objects.create(
+                    name=job.name,
+                    description=job.description,
+                    event=event
+                )
+
         return UpdateEvent(
             id=event.id,
             name=event.name,
@@ -442,7 +477,8 @@ class UpdateEvent(graphene.Mutation):
             end=event.end,
             organisation=event.organisation,
             creator=event.creator,
-            location=event.location
+            location=event.location,
+            jobs=Job.objects.filter(event=event)
         )
 
 
