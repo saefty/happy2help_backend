@@ -448,7 +448,7 @@ class UpdateEvent(graphene.Mutation):
             raise Exception("You cannot delete all jobs. There has to be at least one job per event!")
         jobs_to_delete.delete()
 
-        # jobs is required!
+        # jobs is required
         for job in jobs:
             # if id is given, update the job
             if job.id:
