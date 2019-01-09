@@ -291,9 +291,9 @@ class DeleteJob(graphene.Mutation):
 
 class JobInputType(graphene.InputObjectType):
     id = graphene.ID()
-    name = graphene.String()
-    description = graphene.String()
-    total_positions = graphene.Int()
+    name = graphene.String(required=True)
+    description = graphene.String(required=True)
+    total_positions = graphene.Int(required=True)
     required_skills = graphene.List(graphene.String)
 
 
@@ -455,12 +455,14 @@ class UpdateEvent(graphene.Mutation):
                 edit_job = Job.objects.get(id=job.id)
                 edit_job.name = job.name
                 edit_job.description = job.description
+                edit_job.total_positions = job.total_positions
 
                 # delete all required skills and create new...
                 edit_job.requiresskill_set.all().delete()
-                for skill in job.required_skills:
-                    skill, _ = Skill.objects.get_or_create(name=skill)
-                    RequiresSkill.objects.create(skill=skill, job=edit_job)
+                if job.required_skills:
+                    for skill in job.required_skills:
+                        skill, _ = Skill.objects.get_or_create(name=skill)
+                        RequiresSkill.objects.create(skill=skill, job=edit_job)
 
                 edit_job.save()
             # create new job
