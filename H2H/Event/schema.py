@@ -453,13 +453,15 @@ class UpdateEvent(graphene.Mutation):
             # if id is given, update the job
             if job.id:
                 edit_job = Job.objects.get(id=job.id)
-                if job.name:
-                    edit_job.name = job.name
-                if job.description:
-                    edit_job.description = job.description
-                if job.required_skills:
-                    pass
-                    # TODO: update/delete RequiresSkill
+                edit_job.name = job.name
+                edit_job.description = job.description
+
+                # delete all required skills and create new...
+                edit_job.requiresskill_set.all().delete()
+                for skill in job.required_skills:
+                    skill, _ = Skill.objects.get_or_create(name=skill)
+                    RequiresSkill.objects.create(skill=skill, job=edit_job)
+
                 edit_job.save()
             # create new job
             else:
