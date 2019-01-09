@@ -33,10 +33,10 @@ class ParticipationType(DjangoObjectType):
 class JobType(DjangoObjectType):
     current_users_participation = graphene.Field(ParticipationType)
     required_skills = graphene.List(graphene.String)
-    exclude_fields = ('requiresskill_set',)
 
     class Meta:
         model = Job
+        exclude_fields = ('requiresskill_set',)
 
     def resolve_current_users_participation(self, info, **kwargs):
         participation = Participation.objects.filter(user=info.context.user, job=self)
@@ -289,6 +289,14 @@ class DeleteJob(graphene.Mutation):
         return DeleteJob(id=job_id)
 
 
+class JobInputType(graphene.InputObjectType):
+    id = graphene.ID()
+    name = graphene.String(required=True)
+    description = graphene.String(required=True)
+    total_positions = graphene.Int(required=True)
+    required_skills = graphene.List(graphene.String)
+
+
 class CreateEvent(graphene.Mutation):
     """
     Creates an event. Organisation is optional.
@@ -302,20 +310,22 @@ class CreateEvent(graphene.Mutation):
     organisation = graphene.Field("Organisation.schema.OrganisationType")
     creator = graphene.Field("User.schema.UserType")
     location = graphene.Field("Location.schema.LocationType")
+    jobs = graphene.List(JobType)
 
     class Arguments:
         organisation_id = graphene.ID()
-        name = graphene.String(required=True)
-        description = graphene.String(required=True)
+        name = graphene.String()
+        description = graphene.String()
         location_id = graphene.ID()
         location_name = graphene.String()
         location_lat = graphene.Float()
         location_lon = graphene.Float()
-        start = graphene.DateTime(required=True)
-        end = graphene.DateTime(required=True)
+        start = graphene.DateTime()
+        end = graphene.DateTime()
+        jobs = graphene.List(JobInputType)
 
     @login_required
-    def mutate(self, info, name, description, **kwargs):
+    def mutate(self, info, name, description, start, end, **kwargs):
         user = info.context.user
 
         location_id = kwargs.get('location_id', None)
@@ -345,8 +355,7 @@ class CreateEvent(graphene.Mutation):
             if user not in organisation.members.all():
                 raise Exception(f"You need to be a member of {organisation.name} to create an event")
         else:
-            # TODO: test this!
-            user.profile.credit_points -= 10  # should raise Exception when < 0. Does not for SQLite unfortunately
+            user.profile.credit_points -= 10
             user.profile.save()
 
         event = Event.objects.create(
@@ -354,10 +363,28 @@ class CreateEvent(graphene.Mutation):
             description=description,
             creator=user,
             location=location,
-            organisation=organisation,  # will be set to NULL if organisation = None
-            start=kwargs.get('start'),
-            end=kwargs.get('end')
+            organisation=organisation,
+            start=start,
+            end=end
         )
+
+        jobs = kwargs.get("jobs", None)
+        if jobs:
+            for job in jobs:
+                new_job = Job.objects.create(
+                    name=job.name,
+                    description=job.description,
+                    event=event,
+                    total_positions=job.total_positions
+                )
+                required_skills = job.required_skills
+                if required_skills:
+                    for skill in required_skills:
+                        skill, created = Skill.objects.get_or_create(name=skill)
+                        RequiresSkill.objects.create(skill=skill, job=new_job)
+        # create default job
+        else:
+            Job.objects.create(name=event.name, description=event.description, event=event)
 
         return CreateEvent(
             id=event.id,
@@ -367,7 +394,8 @@ class CreateEvent(graphene.Mutation):
             end=event.end,
             organisation=event.organisation,
             creator=event.creator,
-            location=event.location
+            location=event.location,
+            jobs=Job.objects.filter(event=event)
         )
 
 
@@ -380,6 +408,7 @@ class UpdateEvent(graphene.Mutation):
     organisation = graphene.Field("Organisation.schema.OrganisationType")
     creator = graphene.Field("User.schema.UserType")
     location = graphene.Field("Location.schema.LocationType")
+    jobs = graphene.List(JobType)
 
     class Arguments:
         event_id = graphene.ID(required=True)
@@ -387,9 +416,10 @@ class UpdateEvent(graphene.Mutation):
         description = graphene.String()
         start = graphene.DateTime()
         end = graphene.DateTime()
+        jobs = graphene.List(JobInputType)
 
     @login_required
-    def mutate(self, info, event_id, **kwargs):
+    def mutate(self, info, event_id, jobs, **kwargs):
         user = info.context.user
         event = Event.objects.get(id=event_id)
         organisation = event.organisation
@@ -410,6 +440,39 @@ class UpdateEvent(graphene.Mutation):
             event.end = kwargs['end']
 
         event.save()
+
+        # delete job if id not in 'jobs'
+        job_ids = [job.id for job in jobs]
+        jobs_to_delete = Job.objects.exclude(id__in=job_ids, event=event)
+        if jobs_to_delete == event.job_set:
+            raise Exception("You cannot delete all jobs. There has to be at least one job per event!")
+        jobs_to_delete.delete()
+
+        # jobs is required!
+        for job in jobs:
+            # if id is given, update the job
+            if job.id:
+                edit_job = Job.objects.get(id=job.id)
+                edit_job.name = job.name
+                edit_job.description = job.description
+                edit_job.total_positions = job.total_positions
+
+                # delete all required skills and create new...
+                edit_job.requiresskill_set.all().delete()
+                if job.required_skills:
+                    for skill in job.required_skills:
+                        skill, _ = Skill.objects.get_or_create(name=skill)
+                        RequiresSkill.objects.create(skill=skill, job=edit_job)
+
+                edit_job.save()
+            # create new job
+            else:
+                Job.objects.create(
+                    name=job.name,
+                    description=job.description,
+                    event=event
+                )
+
         return UpdateEvent(
             id=event.id,
             name=event.name,
@@ -418,7 +481,8 @@ class UpdateEvent(graphene.Mutation):
             end=event.end,
             organisation=event.organisation,
             creator=event.creator,
-            location=event.location
+            location=event.location,
+            jobs=Job.objects.filter(event=event)
         )
 
 
