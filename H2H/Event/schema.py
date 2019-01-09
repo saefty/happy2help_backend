@@ -457,7 +457,7 @@ class UpdateEvent(graphene.Mutation):
                 edit_job.description = job.description
                 edit_job.total_positions = job.total_positions
 
-                # delete all required skills and create new...
+                # delete all required skills and create new
                 edit_job.requiresskill_set.all().delete()
                 if job.required_skills:
                     for skill in job.required_skills:
