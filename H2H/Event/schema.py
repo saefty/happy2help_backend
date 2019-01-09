@@ -457,7 +457,7 @@ class TimeDeltaInputType(graphene.InputObjectType):
 
 
 class FilterInputType(graphene.InputObjectType):
-    by_organisation = graphene.Boolean()
+    show_private = graphene.Boolean()
     required_skills = graphene.List(graphene.String)
     time = TimeDeltaInputType()
 
@@ -545,11 +545,9 @@ class Query(graphene.ObjectType):
         filtering = kwargs.get("filtering", None)
         if filtering:
             # has organisation
-            by_organisation = filtering.get("by_organisation", None)
-            if by_organisation:
-                events = events.filter(organisation__isnull=False)
-            elif by_organisation is False:
-                events = events.filter(organisation__isnull=True)
+            show_private = filtering.get("show_private", True)
+            if not show_private:
+                events = events.exclude(organisation__isnull=True)
             # jobs require any of these skills
             required_skills = filtering.get("required_skills", None)
             if required_skills:
