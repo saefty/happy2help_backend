@@ -36,7 +36,6 @@ class JobType(DjangoObjectType):
 
     class Meta:
         model = Job
-        exclude_fields = ('requiresskill_set',)
 
     def resolve_current_users_participation(self, info, **kwargs):
         participation = Participation.objects.filter(user=info.context.user, job=self)
