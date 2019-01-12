@@ -515,8 +515,8 @@ class SortInputType(graphene.InputObjectType):
 
 
 class TimeDeltaInputType(graphene.InputObjectType):
-    start = graphene.Date()
-    end = graphene.Date()
+    start = graphene.DateTime()
+    end = graphene.DateTime()
 
 
 class FilterInputType(graphene.InputObjectType):
