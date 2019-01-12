@@ -588,22 +588,6 @@ class Query(graphene.ObjectType):
                 # nothing relevant found. return none
                 return Event.objects.none()
 
-        # Sort Events
-        sorting = kwargs.get("sorting", None)
-        if sorting:
-            field = sorting.get("field", None)
-            distance = sorting.get("distance", None)
-            if field and distance:
-                raise Exception("Cannot sort by field and distance at the same time!")
-            # sort by field name
-            if field:
-                desc = sorting.get("desc", False)
-                minus = "-" if desc else ""
-                events = events.order_by(minus + field)
-            # sort by distance to self
-            if distance:
-                events = events.order_by_distance(distance)
-
         # Filter Events
         filtering = kwargs.get("filtering", None)
         if filtering:
@@ -623,6 +607,24 @@ class Query(graphene.ObjectType):
                     events = events.filter(start__gte=start)
                 if end:
                     events = events.filter(end__lte=end)
+
+        # Sort Events
+        sorting = kwargs.get("sorting", None)
+        if sorting:
+            field = sorting.get("field", None)
+            distance = sorting.get("distance", None)
+            if field and distance:
+                raise Exception("Cannot sort by field and distance at the same time!")
+            # sort by field name
+            if field:
+                desc = sorting.get("desc", False)
+                minus = "-" if desc else ""
+                events = events.order_by(minus + field)
+            # sort by distance to self
+            if distance:
+                # events is a list, not a QuerySet
+                events = events.order_by_distance(distance)
+
         return events
 
     def resolve_events_by_coordinates(self, info, ul_longitude, ul_latitude, lr_longitude, lr_latitude):
