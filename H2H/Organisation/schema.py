@@ -77,7 +77,7 @@ class UpdateOrganisation(graphene.Mutation):
         )
 
 
-class AddMembers(graphene.Mutation):
+class AddMember(graphene.Mutation):
     id = graphene.ID()
     name = graphene.String()
     description = graphene.String()
@@ -86,22 +86,20 @@ class AddMembers(graphene.Mutation):
 
     class Arguments:
         organisation_id = graphene.ID(required=True)
-        user_ids = graphene.List(graphene.NonNull(graphene.ID), required=True)
+        username = graphene.String(required=True)
 
     @login_required
-    def mutate(self, info, organisation_id, user_ids):
+    def mutate(self, info, organisation_id, username):
         user = info.context.user
         organisation = Organisation.objects.get(pk=organisation_id)
 
         if user != organisation.admin:
             raise Exception('You have to be the admin of this organisation to add members to it')
 
-        for id in user_ids:
-            organisation.members.add(User.objects.get(pk=id))
-        
+        organisation.members.add(User.objects.get(username=username))
         organisation.save()
 
-        return AddMembers(
+        return AddMember(
             id=organisation.id,
             name=organisation.name,
             description=organisation.description,
@@ -180,6 +178,6 @@ class Query(graphene.ObjectType):
 class Mutation(graphene.AbstractType):
     create_organisation = CreateOrganisation.Field()
     update_organisation = UpdateOrganisation.Field()
-    add_members = AddMembers.Field()
+    add_member = AddMember.Field()
     remove_members = RemoveMembers.Field()
     delete_organisation = DeleteOrganisation.Field()
