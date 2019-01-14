@@ -292,7 +292,7 @@ class JobInputType(graphene.InputObjectType):
     id = graphene.ID()
     name = graphene.String(required=True)
     description = graphene.String(required=True)
-    total_positions = graphene.Int(required=True)
+    total_positions = graphene.Int()
     required_skills = graphene.List(graphene.String)
 
 
@@ -441,8 +441,8 @@ class UpdateEvent(graphene.Mutation):
         event.save()
 
         # delete job if id not in 'jobs'
-        job_ids = [job.id for job in jobs]
-        jobs_to_delete = Job.objects.exclude(id__in=job_ids, event=event)
+        job_ids = [job.id for job in jobs if job.id]
+        jobs_to_delete = Job.objects.filter(event=event).exclude(id__in=job_ids)
         if jobs_to_delete == event.job_set:
             raise Exception("You cannot delete all jobs. There has to be at least one job per event!")
         jobs_to_delete.delete()
@@ -450,27 +450,33 @@ class UpdateEvent(graphene.Mutation):
         # jobs is required
         for job in jobs:
             # if id is given, update the job
+            current_job = None
             if job.id:
-                edit_job = Job.objects.get(id=job.id)
-                edit_job.name = job.name
-                edit_job.description = job.description
-                edit_job.total_positions = job.total_positions
+                current_job = Job.objects.get(id=job.id)
+                current_job.name = job.name
+                current_job.description = job.description
+                current_job.total_positions = job.total_positions
+                current_job.save()
 
-                # delete all required skills and create new
-                edit_job.requiresskill_set.all().delete()
-                if job.required_skills:
-                    for skill in job.required_skills:
-                        skill, _ = Skill.objects.get_or_create(name=skill)
-                        RequiresSkill.objects.create(skill=skill, job=edit_job)
-
-                edit_job.save()
             # create new job
             else:
-                Job.objects.create(
+                current_job = Job.objects.create(
                     name=job.name,
                     description=job.description,
-                    event=event
+                    event=event,
+                    total_positions=job.total_positions
                 )
+
+            # update required_skills
+            if job.required_skills:
+                RequiresSkill.objects.filter(job=current_job).exclude(skill__name__in=job.required_skills).delete()
+                for req_skill in job.required_skills:
+                    skill, _ = Skill.objects.get_or_create(name=req_skill)
+                    RequiresSkill.objects.get_or_create(skill=skill, job=current_job)
+
+            # delete all required_skills
+            else:
+                RequiresSkill.objects.filter(job=current_job).delete()
 
         return UpdateEvent(
             id=event.id,
