@@ -292,7 +292,7 @@ class JobInputType(graphene.InputObjectType):
     id = graphene.ID()
     name = graphene.String(required=True)
     description = graphene.String(required=True)
-    total_positions = graphene.Int(required=True)
+    total_positions = graphene.Int()
     required_skills = graphene.List(graphene.String)
 
 
