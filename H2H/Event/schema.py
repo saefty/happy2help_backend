@@ -469,10 +469,7 @@ class UpdateEvent(graphene.Mutation):
 
             # update required_skills
             if job.required_skills:
-                req_skills_to_delete = RequiresSkill.objects.filter(job=current_job).exclude(
-                    skill__name__in=job.required_skills
-                )
-                req_skills_to_delete.delete()
+                RequiresSkill.objects.filter(job=current_job).exclude(skill__name__in=job.required_skills).delete()
                 for req_skill in job.required_skills:
                     skill, _ = Skill.objects.get_or_create(name=req_skill)
                     RequiresSkill.objects.get_or_create(skill=skill, job=current_job)
