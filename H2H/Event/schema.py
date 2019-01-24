@@ -132,8 +132,12 @@ class UpdateParticipation(graphene.Mutation):
             )
 
         if state in (3, 4, 1):  # 3 = declined, 4 = accepted, 1 = participated
-            if user != event_creator and user not in job.event.organisation.members.all():
-                raise Exception("You need to be the event creator or in its organisations members")
+            print("A")
+            if user != event_creator:
+                print("B")
+                if user not in job.event.organisation.members.all():
+                    print("C")
+                    raise Exception("You need to be the event creator or in its organisations members")
             if state == 4 and job.deleted_at:
                 raise Exception("You cannot accept a user for a removed job")
             if state == 1:
