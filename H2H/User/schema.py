@@ -222,6 +222,7 @@ class CreateFavourite(graphene.Mutation):
 
 class Query(graphene.ObjectType):
     user = graphene.Field(UserType)
+    find_participant = graphene.Field(UserType, user_id=graphene.ID())
     skill_search = graphene.List(SkillType, query=graphene.String())
 
     def resolve_user(self, info):
@@ -232,6 +233,10 @@ class Query(graphene.ObjectType):
             .filter(similarity__gt=0.1) \
             .order_by('-similarity')[:5]
         return skills
+
+    @login_required
+    def resolve_find_participant(self, info, user_id):
+        return User.objects.get(id=user_id)
 
 
 class Mutation(graphene.AbstractType):
