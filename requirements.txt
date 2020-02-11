@@ -1,7 +1,7 @@
 aniso8601==3.0.2
 certifi==2018.11.29
 cloudinary==1.14.0
-Django==2.1.2
+Django==2.2.10
 django-filter==2.0.0
 django-graphql-jwt==0.1.13
 geopy==1.18.1
