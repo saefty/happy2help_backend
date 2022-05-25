@@ -14,7 +14,7 @@ gunicorn==19.6.0
 mock==2.0.0
 pbr==5.1.1
 promise==2.2.1
-PyJWT==1.6.4
+PyJWT==2.4.0
 pytz==2018.5
 Rx==1.6.1
 singledispatch==3.4.0.3
